@@ -61,7 +61,7 @@ export function Header() {
               width={150}
               height={40}
               priority
-              className="h-7 w-auto object-contain"
+              className="h-6 w-auto object-contain sm:h-7"
             />
           </Link>
 
@@ -120,7 +120,7 @@ export function Header() {
             width={150}
             height={40}
             priority
-            className="h-7 w-auto object-contain"
+            className="h-6 w-auto object-contain sm:h-7"
           />
         </Link>
 
@@ -187,17 +187,17 @@ export function Header() {
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
             aria-expanded={open}
-            className="flex h-9 w-9 flex-col items-center justify-center gap-[5px] lg:hidden"
+            className="-mr-1 flex h-9 w-8 flex-col items-center justify-center gap-[5px] lg:hidden"
           >
             <span
-              className="block h-px w-5 transition-transform duration-300"
+              className="block h-px w-[18px] transition-transform duration-300"
               style={{
                 backgroundColor: "var(--color-earth)",
                 transform: open ? "translateY(3px) rotate(45deg)" : "none",
               }}
             />
             <span
-              className="block h-px w-5 transition-transform duration-300"
+              className="block h-px w-[18px] transition-transform duration-300"
               style={{
                 backgroundColor: "var(--color-earth)",
                 transform: open ? "translateY(-3px) rotate(-45deg)" : "none",

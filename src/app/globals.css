@@ -53,6 +53,9 @@
 
   /* Échelle typographique */
   --text-display: clamp(2.6rem, 5.4vw, 4.4rem);
+  /* Mobile : même ambition typographique, ~10 % de hauteur en moins —
+     assez pour que le produit entre dans le premier écran. */
+  --text-display-mobile: clamp(2.3rem, 9.2vw, 2.9rem);
   --text-h2: clamp(2.125rem, 4.5vw, 3.25rem);
   --text-h3: clamp(1.5rem, 2.4vw, 2rem);
   --text-lead: clamp(1.15rem, 1.6vw, 1.375rem);
