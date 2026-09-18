@@ -1,0 +1,1 @@
+export { QuoteBand } from "./QuoteBand";

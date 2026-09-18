@@ -1,0 +1,251 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* ── Palette Elisira ────────────────────────────────────────
+     Lumière méditerranéenne de fin d'après-midi. Aucune couleur
+     hors de cette liste. Le noir pur est banni : les textes et
+     les ombres sont tous teintés terre. */
+
+  /* Fonds — plâtre, crème, sable */
+  --color-plaster: #faf6ef;
+  /* Un cran plus clair que plaster : sert à alterner les sections
+     sans que la différence de fond se remarque. */
+  --color-chalk: #fdfbf7;
+
+  --color-cream: #f4ece0;
+  --color-sand: #e8dccb;
+
+  /* Terre — texte, structure */
+  --color-earth-deep: #2e2620;
+  --color-earth: #4a3f35;
+  --color-earth-500: #574c42;
+  --color-earth-300: #78695c;
+
+  /* Terracotta — l'accent principal */
+  --color-terracotta: #c06843;
+  --color-terracotta-dark: #a5522f;
+  --color-terracotta-soft: #d9a184;
+
+  /* Mandarine — l'accent vif, parcimonieux */
+  --color-mandarin: #e8963f;
+
+  /* Feuille — uniquement en touche, jamais en fond */
+  --color-leaf: #6b7d4f;
+
+  /* Surfaces */
+  --color-surface: #ffffff;
+  --color-surface-sunken: var(--color-cream);
+  --color-surface-edge: var(--color-sand);
+
+  /* Sémantique */
+  --color-background: var(--color-plaster);
+  --color-foreground: var(--color-earth);
+  --color-muted: var(--color-earth-300);
+  --color-accent: var(--color-terracotta);
+  --color-accent-hover: var(--color-terracotta-dark);
+  --color-border: rgba(74, 63, 53, 0.14);
+  --color-border-strong: rgba(74, 63, 53, 0.24);
+
+  /* Typographie — serif éditorial pour les titres,
+     sans discrète pour le texte courant */
+  --font-heading: var(--font-cormorant), Georgia, serif;
+  --font-body: var(--font-jost), system-ui, sans-serif;
+
+  /* Échelle typographique */
+  --text-display: clamp(2.6rem, 5.4vw, 4.4rem);
+  --text-h2: clamp(2.125rem, 4.5vw, 3.25rem);
+  --text-h3: clamp(1.5rem, 2.4vw, 2rem);
+  --text-lead: clamp(1.15rem, 1.6vw, 1.375rem);
+  --text-body: 1.0625rem;
+  --text-small: 0.875rem;
+  --text-fine: 0.75rem;
+  --text-micro: 0.6875rem;
+
+  /* Rayons — doux, organiques, jamais anguleux */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 18px;
+  --radius-xl: 28px;
+
+  /* Espacement — le luxe, c'est l'air */
+  --spacing-section: 8rem;
+  --spacing-section-mobile: 5rem;
+}
+
+:root {
+  /* Hairlines — opacités de la terre */
+  --hairline: rgba(74, 63, 53, 0.14);
+  --hairline-strong: rgba(74, 63, 53, 0.24);
+  --hairline-light: rgba(250, 246, 239, 0.18);
+
+  /* Texte secondaire sur fond sombre (footer) : earth-300 y tombe à
+     4,6 de contraste, trop juste. Cette teinte monte à 6,2, tout en
+     restant sous le blanc cassé du logo. */
+  --color-on-dark-muted: #b3a695;
+
+  /* Ombres chaudes — jamais grises, jamais noires.
+     C'est le détail qui sépare le chaleureux du clinique. */
+  --shadow-1: 0 1px 2px rgba(74, 63, 53, 0.04), 0 2px 10px rgba(74, 63, 53, 0.05);
+  --shadow-2: 0 2px 6px rgba(74, 63, 53, 0.05), 0 10px 30px rgba(74, 63, 53, 0.08);
+  --shadow-3: 0 6px 12px rgba(74, 63, 53, 0.06), 0 26px 60px rgba(74, 63, 53, 0.13);
+
+  /* Ombre portée sous la bouteille — chaude et longue, comme
+     la lumière rasante de fin d'après-midi */
+  --shadow-product: 0 40px 70px -20px rgba(120, 85, 55, 0.3);
+
+  /* Fond produit — plâtre chaud, lumière venant de la gauche */
+  --product-bg: radial-gradient(
+    115% 95% at 30% 25%,
+    #fffdf9 0%,
+    var(--color-plaster) 38%,
+    var(--color-cream) 72%,
+    var(--color-sand) 100%
+  );
+
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --header-h: 72px;
+}
+
+/* ── Base ─────────────────────────────────────────────────── */
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--header-h) + 16px);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: 1.7;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+  font-weight: 300;
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+  color: var(--color-earth-deep);
+  text-wrap: balance;
+}
+
+::selection {
+  background-color: var(--color-terracotta-soft);
+  color: var(--color-earth-deep);
+}
+
+/* ── Texture plâtre ───────────────────────────────────────────
+   Un grain très subtil posé sur les grands aplats crème, pour
+   qu'ils ne soient jamais des surfaces plates numériques. */
+/* `.plaster` suppose un élément déjà positionné (relative par défaut).
+   Sur un élément `fixed` ou `absolute`, utiliser `.plaster-grain` seul,
+   qui ne touche pas au positionnement. */
+.plaster {
+  position: relative;
+}
+
+.plaster::after,
+.plaster-grain::after {
+
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
+}
+
+/* ── Utilitaires ──────────────────────────────────────────── */
+
+.body-copy {
+  max-width: 64ch;
+}
+
+/* Filet d'ornement — un trait fin terracotta, comme sur
+   l'étiquette de la bouteille */
+.rule-ornament {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--color-terracotta);
+}
+
+.rule-ornament::before,
+.rule-ornament::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: currentColor;
+  opacity: 0.45;
+}
+
+/* Emphase de marque — italique terracotta */
+.accent-italic {
+  font-style: italic;
+  color: var(--color-terracotta);
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface-sunken);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-sand);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-earth-300);
+}
+
+/* ── Focus ────────────────────────────────────────────────── */
+
+*:focus-visible {
+  outline: 2px solid var(--color-terracotta);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Un clic souris ne doit pas laisser l'anneau de focus : il dessinait
+   une capsule autour du lien de navigation actif. Le focus clavier,
+   lui, reste intact. */
+a:focus:not(:focus-visible),
+button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── Mouvement réduit ─────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

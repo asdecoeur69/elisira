@@ -1,0 +1,1 @@
+export { IngredientsSection } from "./IngredientsSection";
