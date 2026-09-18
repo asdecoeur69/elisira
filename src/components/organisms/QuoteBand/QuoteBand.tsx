@@ -3,20 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { m } from "framer-motion";
+import { fade, rise, stagger, viewportOnce } from "@/lib/animations";
 
-const rise = {
-  hidden: { opacity: 0, y: 24 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 1.1, ease: [0.22, 0.61, 0.36, 1] as const },
-  },
-};
 
-const stagger = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.16 } },
-};
 
 /**
  * Bloc de clôture — deux colonnes.
@@ -46,7 +35,7 @@ function QuoteBand() {
           variants={stagger}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, amount: 0.35 }}
+          viewport={viewportOnce}
           className="flex items-center"
         >
           <div className="max-w-[22ch]">
@@ -73,10 +62,10 @@ function QuoteBand() {
 
         {/* ── Image — file jusqu'au bord droit ──────────────── */}
         <m.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, amount: 0.25 }}
-          transition={{ duration: 1.3, ease: [0.22, 0.61, 0.36, 1] }}
+          variants={fade}
+          initial="hidden"
+          whileInView="show"
+          viewport={viewportOnce}
           className="relative h-[220px] lg:h-[340px]"
         >
           <div className="relative h-full w-full overflow-hidden rounded-[var(--radius-lg)]">

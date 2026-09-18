@@ -3,21 +3,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { m } from "framer-motion";
+import { rise, stagger, viewportOnce } from "@/lib/animations";
 import { AddToCartButton } from "@/components/molecules/AddToCartButton";
 
-const rise = {
-  hidden: { opacity: 0, y: 24 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 1, ease: [0.22, 0.61, 0.36, 1] as const },
-  },
-};
 
-const stagger = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.14 } },
-};
 
 /**
  * La gamme — trois colonnes.
@@ -35,7 +24,7 @@ function RangeSection() {
           variants={rise}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, amount: 0.4 }}
+          viewport={viewportOnce}
           className="mx-auto max-w-[620px] text-center"
         >
           <p className="mb-6 text-[0.7rem] uppercase tracking-[0.34em] text-[var(--color-terracotta)]">
@@ -51,7 +40,7 @@ function RangeSection() {
           variants={stagger}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, amount: 0.15 }}
+          viewport={viewportOnce}
           className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-3"
         >
           {/* ── Elisira 50 cl ───────────────────────────────── */}

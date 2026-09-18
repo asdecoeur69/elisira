@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { m } from "framer-motion";
+import { rise, stagger } from "@/lib/animations";
 import { useLocalCart, formatPrice } from "@/lib/cart/LocalCartProvider";
 import Link from "next/link";
 import { getEditorial, SUGGESTION } from "@/lib/catalog/editorial";
@@ -12,19 +13,6 @@ export interface ProductDetailProps {
   product: ShopifyProduct;
 }
 
-const rise = {
-  hidden: { opacity: 0, y: 20 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 1, ease: [0.22, 0.61, 0.36, 1] as const },
-  },
-};
-
-const stagger = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.1 } },
-};
 
 function ProductDetail({ product }: ProductDetailProps) {
   const { linesAdd } = useLocalCart();

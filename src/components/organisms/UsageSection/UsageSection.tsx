@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { m } from "framer-motion";
+import { rise, stagger, viewportOnce } from "@/lib/animations";
 
 const USAGES = [
   {
@@ -27,19 +28,7 @@ const USAGES = [
   },
 ];
 
-const stagger = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.16 } },
-};
 
-const rise = {
-  hidden: { opacity: 0, y: 24 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 1, ease: [0.22, 0.61, 0.36, 1] as const },
-  },
-};
 
 /**
  * Les trois usages. C'est la section qui répond à la question que
@@ -53,7 +42,7 @@ function UsageSection() {
           variants={rise}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, amount: 0.4 }}
+          viewport={viewportOnce}
           className="mx-auto max-w-[620px] text-center"
         >
           <p className="mb-6 text-[0.7rem] uppercase tracking-[0.34em] text-[var(--color-terracotta)]">
@@ -69,7 +58,7 @@ function UsageSection() {
           variants={stagger}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={viewportOnce}
           className="mt-16 grid grid-cols-1 gap-px overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-border)] md:grid-cols-3"
         >
           {USAGES.map((u, i) => (

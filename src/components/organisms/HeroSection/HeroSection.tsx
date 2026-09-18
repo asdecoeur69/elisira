@@ -2,21 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { m, type Variants } from "framer-motion";
-
-const stagger: Variants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.14, delayChildren: 0.15 } },
-};
-
-const rise: Variants = {
-  hidden: { opacity: 0, y: 22 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 1.1, ease: [0.22, 0.61, 0.36, 1] },
-  },
-};
+import { m } from "framer-motion";
+import { rise, stagger } from "@/lib/animations";
 
 function HeroSection() {
   return (
@@ -121,9 +108,9 @@ function HeroSection() {
 
         {/* ── Bouteille ─────────────────────────────────────── */}
         <m.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.5, delay: 0.2, ease: [0.22, 0.61, 0.36, 1] }}
+          transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 0.61, 0.36, 1] }}
           className="order-4 mx-auto mt-5 w-auto lg:order-none lg:mt-0"
         >
           <div className="relative">

@@ -156,13 +156,23 @@ h4 {
 
 .plaster::after,
 .plaster-grain::after {
-
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.4;
-  mix-blend-mode: multiply;
+
+  /* `mix-blend-mode` faisait de chaque section un groupe de fusion :
+     dès qu'un enfant s'animait, le navigateur devait refondre toute la
+     surface de la section — souvent 2000 px et plus de haut, en DPR 2 —
+     à chaque image. C'était la cause principale des apparitions qui
+     saccadaient.
+
+     Le grain est un bruit gris posé à 5 % sur des aplats crème : le
+     multiply n'y apportait presque rien qu'un fondu normal ne rende.
+     On garde donc le même rendu perçu, sans groupe de fusion, et la
+     texture redevient une simple couche que le compositeur peut
+     ignorer pendant les animations. */
+  opacity: 0.32;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
 }
 

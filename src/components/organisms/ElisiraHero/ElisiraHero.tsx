@@ -21,9 +21,9 @@ export function ElisiraHero({ reperes }: { reperes: Repere[] }) {
 
       <div className="relative mx-auto grid max-w-[1240px] grid-cols-1 items-start gap-12 px-6 pb-[40px] pt-[calc(var(--header-h)+56px)] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.75fr)] lg:items-center lg:gap-14 lg:px-10 lg:pb-[50px]">
         <m.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: [0.22, 0.61, 0.36, 1] }}
+          transition={{ duration: 0.55, ease: [0.22, 0.61, 0.36, 1] }}
         >
           <p className="mb-6 text-[0.7rem] uppercase tracking-[0.34em] text-[var(--color-terracotta)]">
             La liqueur
@@ -41,11 +41,11 @@ export function ElisiraHero({ reperes }: { reperes: Repere[] }) {
 
         {/* Les repères — 2 × 2, séparés par de simples filets. */}
         <m.dl
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{
-            duration: 1,
-            delay: 0.18,
+            duration: 0.55,
+            delay: 0.1,
             ease: [0.22, 0.61, 0.36, 1],
           }}
           className="grid grid-cols-1 gap-x-10 sm:grid-cols-2 lg:[&>div]:min-h-[104px]"

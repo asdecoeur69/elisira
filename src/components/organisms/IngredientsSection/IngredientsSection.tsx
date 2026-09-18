@@ -2,20 +2,9 @@
 
 import Image from "next/image";
 import { m } from "framer-motion";
+import { fade, rise, stagger, viewportOnce } from "@/lib/animations";
 
-const rise = {
-  hidden: { opacity: 0, y: 26 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 1.1, ease: [0.22, 0.61, 0.36, 1] as const },
-  },
-};
 
-const stagger = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.15 } },
-};
 
 const INGREDIENTS = [
   { name: "Eau", note: "" },
@@ -32,12 +21,13 @@ function IngredientsSection() {
   return (
     <section className="relative overflow-hidden py-[var(--spacing-section-mobile)] lg:py-[var(--spacing-section)]">
       <div className="mx-auto grid max-w-[1240px] grid-cols-1 items-center gap-14 px-6 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20 lg:px-10">
-        {/* Les zestes — l'ingrédient qui fait la liqueur */}
+        {/* Les zestes — l'ingrédient qui fait la liqueur.
+            Fondu seul, comme tous les grands visuels du site. */}
         <m.div
-          variants={rise}
+          variants={fade}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, amount: 0.25 }}
+          viewport={viewportOnce}
           className="relative order-2 lg:order-1"
         >
           <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-lg)] shadow-[var(--shadow-2)]">
@@ -55,7 +45,7 @@ function IngredientsSection() {
           variants={stagger}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={viewportOnce}
           className="order-1 lg:order-2"
         >
           <m.p
