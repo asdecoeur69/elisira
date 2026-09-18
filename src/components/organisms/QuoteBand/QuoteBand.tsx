@@ -35,8 +35,12 @@ function QuoteBand() {
           Empilé, l'écart entre le trait du CTA et l'image reprend ce même
           rythme que le padding bas : l'image est alors centrée entre la
           ligne et le footer. (Le soulignement du lien déborde de ~24 px
-          hors de sa colonne, d'où un gap plus large que l'écart perçu.) */}
-      <div className="relative mx-auto grid max-w-[1240px] grid-cols-1 items-center gap-[calc(var(--spacing-section-mobile)+24px)] px-6 py-[var(--spacing-section-mobile)] lg:grid-cols-[minmax(0,0.36fr)_minmax(0,0.64fr)] lg:gap-14 lg:px-10 lg:py-16">
+          hors de sa colonne, d'où un gap plus large que l'écart perçu.)
+
+          Ce bloc respire moins que les sections pleines sur mobile : le
+          rythme de section (5rem) y laissait trop de vide autour d'une
+          image de 220 px. */}
+      <div className="relative mx-auto grid max-w-[1240px] grid-cols-1 items-center gap-[calc(3rem+24px)] px-6 py-12 lg:grid-cols-[minmax(0,0.36fr)_minmax(0,0.64fr)] lg:gap-14 lg:px-10 lg:py-16">
         {/* ── Texte ─────────────────────────────────────────── */}
         <m.div
           variants={stagger}
@@ -55,7 +59,7 @@ function QuoteBand() {
               <span className="accent-italic">autour de la table.</span>
             </m.h2>
 
-            <m.div variants={rise} className="mt-10">
+            <m.div variants={rise} className="mt-7 lg:mt-10">
               <Link
                 href="/commander"
                 className="inline-block border-b pb-1.5 text-[0.78rem] uppercase tracking-[0.18em] text-[var(--color-terracotta)] transition-colors duration-300 hover:text-[var(--color-terracotta-dark)]"
