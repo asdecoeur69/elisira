@@ -28,14 +28,22 @@ const stagger = {
 function QuoteBand() {
   return (
     <section className="plaster relative overflow-hidden">
-      <div className="relative mx-auto grid max-w-[1240px] grid-cols-1 items-center gap-10 px-6 lg:grid-cols-[minmax(0,0.36fr)_minmax(0,0.64fr)] lg:gap-14 lg:px-10">
+      {/* Le rythme vertical appartient à la section, pas à la colonne de
+          texte : sinon l'image, qui n'a pas ce padding, vient coller au
+          footer une fois les colonnes empilées sur mobile.
+
+          Empilé, l'écart entre le trait du CTA et l'image reprend ce même
+          rythme que le padding bas : l'image est alors centrée entre la
+          ligne et le footer. (Le soulignement du lien déborde de ~24 px
+          hors de sa colonne, d'où un gap plus large que l'écart perçu.) */}
+      <div className="relative mx-auto grid max-w-[1240px] grid-cols-1 items-center gap-[calc(var(--spacing-section-mobile)+24px)] px-6 py-[var(--spacing-section-mobile)] lg:grid-cols-[minmax(0,0.36fr)_minmax(0,0.64fr)] lg:gap-14 lg:px-10 lg:py-16">
         {/* ── Texte ─────────────────────────────────────────── */}
         <m.div
           variants={stagger}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, amount: 0.35 }}
-          className="flex items-center py-[var(--spacing-section-mobile)] lg:py-16"
+          className="flex items-center"
         >
           <div className="max-w-[22ch]">
             <m.h2
