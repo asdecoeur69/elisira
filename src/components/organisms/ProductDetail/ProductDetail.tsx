@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { m } from "framer-motion";
 import { useLocalCart, formatPrice } from "@/lib/cart/LocalCartProvider";
@@ -34,6 +34,56 @@ function ProductDetail({ product }: ProductDetailProps) {
   const suggestion = SUGGESTION[product.handle];
 
   const [imageActive, setImageActive] = useState(0);
+  const pisteRef = useRef<HTMLDivElement>(null);
+  // Évite que le scroll natif (mobile) ne « rattrape » l'index pendant
+  // qu'une flèche ou une vignette fait défiler la piste.
+  const pilotage = useRef(false);
+
+  /** Fait défiler la piste jusqu'à une image (index absolu) ou d'un
+      cran (pas relatif). Le cran part de la position réellement visée,
+      pas de l'état React : sinon deux clics rapides se cumulent pendant
+      que le défilement doux est encore en cours. */
+  const vise = useRef(0);
+  const allerA = useCallback((i: number, relatif = false) => {
+    const piste = pisteRef.current;
+    if (!piste) return;
+    const total = piste.children.length;
+    if (total === 0) return;
+    const brut = relatif ? vise.current + i : i;
+    const cible = ((brut % total) + total) % total;
+    vise.current = cible;
+    setImageActive(cible);
+    pilotage.current = true;
+    // Le scroll-snap « mandatory » annule les défilements animés sur
+    // certains moteurs : on vise la diapo elle-même, et on retombe sur
+    // un positionnement instantané si l'animation n'a pas pris.
+    const diapo = piste.children[cible] as HTMLElement;
+    diapo.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+      block: "nearest",
+    });
+    window.setTimeout(() => {
+      if (Math.round(piste.scrollLeft / piste.clientWidth) !== cible) {
+        piste.scrollLeft = cible * piste.clientWidth;
+      }
+    }, 400);
+    window.setTimeout(() => {
+      pilotage.current = false;
+    }, 600);
+  }, []);
+  // Le scroll-snap se recalcule sur la nouvelle largeur : on réaligne
+  // la piste sur l'image courante après un redimensionnement.
+  useEffect(() => {
+    function realigner() {
+      const piste = pisteRef.current;
+      if (!piste) return;
+      piste.scrollLeft = imageActive * piste.clientWidth;
+    }
+    window.addEventListener("resize", realigner);
+    return () => window.removeEventListener("resize", realigner);
+  }, [imageActive]);
+
   const [quantite, setQuantite] = useState(1);
   const [ouvert, setOuvert] = useState<string | null>(null);
   const [ajoute, setAjoute] = useState(false);
@@ -60,26 +110,106 @@ function ProductDetail({ product }: ProductDetailProps) {
             Collants au scroll : la photo accompagne la lecture des
             informations plutôt que de laisser un vide à gauche. */}
         <div>
-          <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-lg)] bg-[var(--color-cream)]">
-            {images[imageActive] && (
-              <Image
-                src={images[imageActive].url}
-                alt={images[imageActive].altText ?? product.title}
-                fill
-                priority
-                sizes="(max-width: 1024px) 90vw, 42vw"
-                className="object-cover"
-              />
+          <div
+            className="group relative overflow-hidden rounded-[var(--radius-lg)] bg-[var(--color-cream)]"
+            role="group"
+            aria-roledescription="carrousel"
+            aria-label={`Photos — ${product.title}`}
+          >
+            {/* Piste défilante : swipe natif sur mobile, flèches au clic. */}
+            <div
+              ref={pisteRef}
+              onScroll={(e) => {
+                if (pilotage.current) return;
+                const piste = e.currentTarget;
+                const i = Math.round(piste.scrollLeft / piste.clientWidth);
+                vise.current = i;
+                setImageActive((prev) => (prev === i ? prev : i));
+              }}
+              className="flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {images.map((img, i) => (
+                <div
+                  key={img.url}
+                  className="relative aspect-[4/5] w-full shrink-0 snap-center"
+                  aria-hidden={i === imageActive ? undefined : true}
+                >
+                  <Image
+                    src={img.url}
+                    alt={img.altText ?? product.title}
+                    fill
+                    priority={i === 0}
+                    sizes="(max-width: 1024px) 90vw, 42vw"
+                    className="object-cover"
+                    draggable={false}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {images.length > 1 && (
+              <>
+                {/* Flèches discrètes : voile crème translucide, trait
+                    terracotta — visibles sans écraser la photo. */}
+                {([
+                  ["prev", "Image précédente", "left-3 lg:left-4", "M15 5 8 12l7 7"],
+                  ["next", "Image suivante", "right-3 lg:right-4", "M9 5l7 7-7 7"],
+                ] as const).map(([sens, label, position, trace]) => (
+                  <button
+                    key={sens}
+                    type="button"
+                    aria-label={label}
+                    onClick={() => allerA(sens === "next" ? 1 : -1, true)}
+                    className={`absolute top-1/2 ${position} z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full backdrop-blur-[2px] transition-all duration-300 hover:bg-[var(--color-cream)] focus-visible:opacity-100 lg:opacity-0 lg:group-hover:opacity-100`}
+                    style={{
+                      background: "color-mix(in srgb, var(--color-cream) 78%, transparent)",
+                      border: "1px solid var(--hairline)",
+                      color: "var(--color-earth)",
+                    }}
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden
+                    >
+                      <path d={trace} />
+                    </svg>
+                  </button>
+                ))}
+
+                {/* Pastilles : repère de position, surtout au doigt. */}
+                <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center gap-2 lg:hidden">
+                  {images.map((img, i) => (
+                    <span
+                      key={img.url}
+                      className="h-1.5 rounded-full transition-all duration-300"
+                      style={{
+                        width: i === imageActive ? "18px" : "6px",
+                        background:
+                          i === imageActive
+                            ? "var(--color-terracotta)"
+                            : "color-mix(in srgb, var(--color-cream) 70%, transparent)",
+                      }}
+                    />
+                  ))}
+                </div>
+              </>
             )}
           </div>
 
           {images.length > 1 && (
-            <div className="mt-4 flex gap-4">
+            <div className="mt-4 hidden gap-4 lg:flex">
               {images.map((img, i) => (
                 <button
                   key={img.url}
                   type="button"
-                  onClick={() => setImageActive(i)}
+                  onClick={() => allerA(i)}
                   aria-label={`Voir l'image ${i + 1}`}
                   aria-current={i === imageActive ? "true" : undefined}
                   className="relative aspect-[4/5] w-[72px] overflow-hidden rounded-[var(--radius-sm)] transition-opacity duration-300 hover:opacity-100"
