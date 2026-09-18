@@ -7,36 +7,60 @@ import { useLocalCart, formatPrice } from "@/lib/cart/LocalCartProvider";
 /**
  * Confirmation de commande.
  *
- * On fige le contenu du panier au premier rendu, puis on le vide : sans
- * cela, le récapitulatif disparaîtrait sous les yeux du visiteur.
+ * Le retour de Stripe recharge entièrement la page : le panier local
+ * n'est donc pas encore hydraté au premier rendu (il se relit depuis
+ * localStorage de façon asynchrone). On attend la première lecture non
+ * vide, on la fige pour l'affichage, puis on vide le panier — sans quoi
+ * le récapitulatif disparaîtrait sous les yeux du visiteur.
  */
 export default function ConfirmationPage() {
-  const { resolved, subtotal, currency, removeLine } = useLocalCart();
+  const { resolved, currency, removeLine } = useLocalCart();
 
-  /* Instantané du panier avant vidage, et total réglé transmis par
-     l'étape de paiement (remise éventuelle comprise). */
-  const [fige] = useState(() => {
-    let regle: number | null = null;
-    let codePromo: string | null = null;
+  /* Total réglé transmis par l'étape de paiement (remise éventuelle
+     comprise) — lu une seule fois, indépendamment du panier. */
+  const [regle] = useState<number | null>(() => {
     try {
       const brut = sessionStorage.getItem("elisira-commande");
       if (brut) {
         const d = JSON.parse(brut);
-        if (typeof d?.total === "number") regle = d.total;
-        if (typeof d?.code === "string") codePromo = d.code;
+        if (typeof d?.total === "number") return d.total;
       }
     } catch {
       /* Rien de stocké : on retombe sur le calcul simple. */
     }
-    return { lignes: resolved, total: subtotal, regle, codePromo };
+    return null;
   });
-  const vide = useRef(false);
+  const [codePromo] = useState<string | null>(() => {
+    try {
+      const brut = sessionStorage.getItem("elisira-commande");
+      if (brut) {
+        const d = JSON.parse(brut);
+        if (typeof d?.code === "string") return d.code;
+      }
+    } catch {
+      /* idem */
+    }
+    return null;
+  });
 
+  /* Instantané du panier avant vidage : le panier ne s'hydrate depuis
+     localStorage qu'après le premier rendu (retour Stripe = rechargement
+     complet de la page), donc `resolved` peut être vide un court instant.
+     On retient la première liste non vide observée, en ajustant le state
+     pendant le rendu plutôt que dans un effet — cf. la doc React sur
+     l'ajustement de state pendant le rendu. */
+  const [fige, setFige] = useState<typeof resolved>([]);
+  if (fige.length === 0 && resolved.length > 0) {
+    setFige(resolved);
+  }
+
+  const vide = useRef(false);
   useEffect(() => {
     if (vide.current) return;
+    if (resolved.length === 0) return; // pas encore hydraté (ou vraiment vide)
     vide.current = true;
-    fige.lignes.forEach((l) => removeLine(l.merchandiseId));
-  }, [fige.lignes, removeLine]);
+    resolved.forEach((l) => removeLine(l.merchandiseId));
+  }, [resolved, removeLine]);
 
   const numero = `EL-${new Date().getFullYear()}-0148`;
 
@@ -66,20 +90,20 @@ export default function ConfirmationPage() {
       </p>
 
 
-      {fige.lignes.length > 0 && (
+      {fige.length > 0 && (
         <div className="mt-14">
           <h2 className="text-[0.72rem] uppercase tracking-[0.22em] text-[var(--color-terracotta)]">
             Votre commande
           </h2>
 
           <ul className="mt-6">
-            {fige.lignes.map((line, i) => (
+            {fige.map((line, i) => (
               <li
                 key={line.merchandiseId}
                 className="flex items-baseline justify-between gap-4 border-t py-4"
                 style={{
                   borderColor: "var(--hairline)",
-                  borderBottomWidth: i === fige.lignes.length - 1 ? 1 : 0,
+                  borderBottomWidth: i === fige.length - 1 ? 1 : 0,
                   borderBottomStyle: "solid",
                 }}
               >
@@ -96,13 +120,13 @@ export default function ConfirmationPage() {
             ))}
           </ul>
 
-          {fige.codePromo && (
+          {codePromo && (
             <div className="mt-5 flex items-baseline justify-between">
               <span className="text-[0.8rem] text-[var(--color-terracotta)]">
                 Code appliqué
               </span>
               <span className="text-[0.8rem] uppercase tracking-[0.12em] text-[var(--color-terracotta)]">
-                {fige.codePromo}
+                {codePromo}
               </span>
             </div>
           )}
@@ -112,7 +136,11 @@ export default function ConfirmationPage() {
               Total réglé
             </span>
             <span className="font-[family-name:var(--font-heading)] text-[1.5rem] text-[var(--color-earth-deep)]">
-              {formatPrice(fige.regle ?? fige.total + 9, currency)}
+              {formatPrice(
+                regle ??
+                  fige.reduce((sum, l) => sum + l.lineTotal, 0) + 9,
+                currency
+              )}
             </span>
           </div>
         </div>
