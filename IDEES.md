@@ -50,6 +50,33 @@ pas du développement. Rien ici ne demande de réécrire le site.
 - Page 404 française avec navigation, et page d'erreur (écran blanc
   auparavant).
 
+**Audit fonctionnel et juridique du 2026-09-20**
+
+*Vérifié bon* — 19 liens internes testés, aucun cassé ; coordonnées
+identiques partout (info@hh-spirits.com, deux numéros, Chem. des Chaumets
+35) ; prix catalogue = prix affichés (30/35/10) ; frais de port annoncés
+= constantes du code (9 CHF, offerte dès 120) ; mention alcool dans le
+pied de page donc sur toutes les pages ; CGV datées (septembre 2026) et
+complètes (11 sections dont retour à 14 jours, garantie, for juridique) ;
+mentions légales et politique de confidentialité structurées ; aucun
+débordement horizontal sur mobile ; ancre `#fiche-produit` valide ;
+mailtos B2B pré-remplis (établissement, adresse, contact).
+
+*À traiter, par ordre d'impact commercial*
+1. **Le panier ne dit pas que la livraison est offerte dès 120 CHF.** Il
+   affiche « Les frais de livraison seront calculés à l'étape suivante ».
+   C'est l'argument de vente le plus rentable du site, absent du seul
+   endroit où il déclencherait un achat supplémentaire (panier à 90 CHF →
+   « plus que 30 CHF pour la livraison offerte »).
+2. **Aucun point de vente n'est nommé.** La page dit « chez nos
+   partenaires à Genève » sans un seul nom : le visiteur qui cherche où
+   acheter repart bredouille. Ces noms seraient aussi des backlinks (voir
+   l'entrée dédiée) et de la preuve sociale gratuite.
+3. **Aucun lien vers les réseaux sociaux**, alors qu'ils sont gérés
+   activement. Manque dans le pied de page.
+4. **Second numéro non cliquable** : seul le premier est en `tel:` hors de
+   la page Contact.
+
 **Reste à traiter**
 - **Identification légale absente** : ni numéro IDE (CHE-…), ni mention du
   régime TVA dans les mentions légales et les CGV. À vérifier avec eux
