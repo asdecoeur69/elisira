@@ -36,6 +36,37 @@ export function fraisDeLivraison(sousTotalRemise: number): number {
   return sousTotalRemise >= LIVRAISON_OFFERTE_DES ? 0 : LIVRAISON;
 }
 
+/**
+ * Modes de livraison.
+ *
+ * Le choix se fait sur le site, pas chez Stripe : là-bas il est relégué
+ * sous le formulaire d'adresse, après deux écrans de défilement, et le
+ * total affiché inclut d'emblée les frais de port — un client qui aurait
+ * pris le retrait voit donc un prix gonflé sans savoir qu'un choix existe.
+ */
+export type ModeLivraison = "livraison" | "retrait";
+
+export const MODES: Record<
+  ModeLivraison,
+  { libelle: string; detail: string; delai: string }
+> = {
+  livraison: {
+    libelle: "Livraison en Suisse",
+    detail: "Par la Poste Suisse, à l'adresse de votre choix.",
+    delai: "2 à 4 jours ouvrables",
+  },
+  retrait: {
+    libelle: "Retrait à Collex-Bossy",
+    detail: "Chem. des Chaumets 35. Nous convenons d'un créneau par téléphone.",
+    delai: "Sur rendez-vous",
+  },
+};
+
+/** Normalise un mode reçu du navigateur ; tout le reste vaut livraison. */
+export function normaliserMode(brut: unknown): ModeLivraison {
+  return brut === "retrait" ? "retrait" : "livraison";
+}
+
 export type LigneDemandee = { merchandiseId: string; quantity: number };
 
 export type LigneValidee = {
@@ -70,6 +101,7 @@ export type Panier = {
   sousTotal: number;
   remise: number;
   livraison: number;
+  mode: ModeLivraison;
   total: number;
   /* `clef` et `remise` (fraction, ex. 0.1) permettent à la route de créer
      un coupon Stripe réutilisable — un par code — plutôt qu'un coupon
@@ -83,8 +115,10 @@ export type Panier = {
  */
 export function calculerPanier(
   demandees: unknown,
-  codeBrut?: unknown
+  codeBrut?: unknown,
+  modeBrut?: unknown
 ): Panier {
+  const mode = normaliserMode(modeBrut);
   if (!Array.isArray(demandees) || demandees.length === 0) {
     throw new Error("Panier vide.");
   }
@@ -141,14 +175,22 @@ export function calculerPanier(
   const remise = code ? Math.round(sousTotal * code.remise) : 0;
 
   const apresRemise = sousTotal - remise;
+  /* Le retrait est gratuit par nature ; sinon le seuil de gratuité
+     s'applique. C'est le serveur qui tranche : un mode envoyé par le
+     navigateur ne fixe jamais un montant, il ne fait que le désigner. */
   const livraison =
-    apresRemise >= LIVRAISON_OFFERTE_DES * 100 ? 0 : LIVRAISON * 100;
+    mode === "retrait"
+      ? 0
+      : apresRemise >= LIVRAISON_OFFERTE_DES * 100
+        ? 0
+        : LIVRAISON * 100;
 
   return {
     lignes,
     sousTotal,
     remise,
     livraison,
+    mode,
     total: apresRemise + livraison,
     code: code
       ? { clef, libelle: code.libelle, remise: code.remise }

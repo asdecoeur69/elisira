@@ -71,7 +71,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let corps: { lignes?: unknown; code?: unknown; majeur?: unknown };
+  let corps: {
+    lignes?: unknown;
+    code?: unknown;
+    majeur?: unknown;
+    mode?: unknown;
+  };
   try {
     corps = await request.json();
   } catch {
@@ -88,7 +93,7 @@ export async function POST(request: NextRequest) {
 
   let panier;
   try {
-    panier = calculerPanier(corps.lignes, corps.code);
+    panier = calculerPanier(corps.lignes, corps.code, corps.mode);
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Panier invalide." },
@@ -171,36 +176,30 @@ export async function POST(request: NextRequest) {
           }
         : {}),
 
-      /* Deux options, comme l'annoncent les pages Livraison et Points de
-         vente : l'expédition, et le retrait gratuit à Collex-Bossy. Sans
-         la seconde, le site promettait un choix que le paiement ne
-         proposait pas, et facturait le port à qui venait chercher sa
-         commande. Le créneau se convient ensuite par téléphone — d'où le
-         délai large annoncé ici. */
+      /* Une seule option, celle retenue sur le site. Stripe n'a plus de
+         choix à présenter : le client l'a déjà fait, en voyant le total
+         se mettre a jour. */
       shipping_options: [
         {
           shipping_rate_data: {
             type: "fixed_amount",
             display_name:
-              panier.livraison === 0
-                ? "Livraison offerte"
-                : "Livraison en Suisse",
+              panier.mode === "retrait"
+                ? "Retrait à Collex-Bossy — sur rendez-vous"
+                : panier.livraison === 0
+                  ? "Livraison offerte"
+                  : "Livraison en Suisse",
             fixed_amount: { amount: panier.livraison, currency: DEVISE },
-            delivery_estimate: {
-              minimum: { unit: "business_day", value: 2 },
-              maximum: { unit: "business_day", value: 4 },
-            },
-          },
-        },
-        {
-          shipping_rate_data: {
-            type: "fixed_amount",
-            display_name: "Retrait à Collex-Bossy — sur rendez-vous",
-            fixed_amount: { amount: 0, currency: DEVISE },
-            delivery_estimate: {
-              minimum: { unit: "business_day", value: 1 },
-              maximum: { unit: "business_day", value: 7 },
-            },
+            delivery_estimate:
+              panier.mode === "retrait"
+                ? {
+                    minimum: { unit: "business_day", value: 1 },
+                    maximum: { unit: "business_day", value: 7 },
+                  }
+                : {
+                    minimum: { unit: "business_day", value: 2 },
+                    maximum: { unit: "business_day", value: 4 },
+                  },
           },
         },
       ],
@@ -208,7 +207,12 @@ export async function POST(request: NextRequest) {
       /* Suisse uniquement, conformément à la page Livraison. Ouvrir le
          Liechtenstein ici sans le dire ailleurs créerait un doute au
          moment de payer. */
-      shipping_address_collection: { allowed_countries: ["CH"] },
+      /* Demander une adresse de livraison à qui vient chercher sa
+         bouteille est un obstacle inutile : Stripe recueille de toute
+         façon le nom et le téléphone. */
+      ...(panier.mode === "retrait"
+        ? {}
+        : { shipping_address_collection: { allowed_countries: ["CH"] as const } }),
       phone_number_collection: { enabled: true },
 
       success_url: `${origine}/commande/confirmation?session_id={CHECKOUT_SESSION_ID}`,
@@ -216,6 +220,7 @@ export async function POST(request: NextRequest) {
 
       metadata: {
         code: panier.code?.libelle ?? "",
+        mode: panier.mode,
         majeur: "oui",
       },
     });

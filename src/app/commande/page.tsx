@@ -8,6 +8,8 @@ import {
   fraisDeLivraison,
   CODES,
   LIVRAISON_OFFERTE_DES,
+  MODES,
+  type ModeLivraison,
 } from "@/lib/commerce/tarifs";
 
 /**
@@ -26,6 +28,10 @@ export default function CommandePage() {
   const { resolved, subtotal, currency, totalQuantity } = useLocalCart();
   const [majeur, setMajeur] = useState(false);
 
+  /* Mode de livraison retenu. Le serveur le revalide : ceci n'est que
+     l'affichage et le total estimé. */
+  const [mode, setMode] = useState<ModeLivraison>("livraison");
+
   /* Code promo */
   const [saisie, setSaisie] = useState("");
   const [code, setCode] = useState<{ remise: number; libelle: string } | null>(
@@ -39,7 +45,8 @@ export default function CommandePage() {
   const [envoi, setEnvoi] = useState(false);
 
   const remise = code ? subtotal * code.remise : 0;
-  const livraison = fraisDeLivraison(subtotal - remise);
+  const livraison =
+    mode === "retrait" ? 0 : fraisDeLivraison(subtotal - remise);
   const total = subtotal - remise + livraison;
 
   function appliquerCode(e?: { preventDefault: () => void }) {
@@ -93,6 +100,7 @@ export default function CommandePage() {
           })),
           code: codeSaisi,
           majeur,
+          mode,
         }),
       });
 
@@ -150,19 +158,16 @@ export default function CommandePage() {
 
             <p className="body-copy mt-5 max-w-[54ch] text-[0.98rem] leading-relaxed text-[var(--color-earth-500)]">
               Le paiement est sécurisé par Stripe. Vous pourrez régler par
-              carte bancaire ou TWINT, choisir la livraison ou le retrait
-              gratuit à Collex-Bossy, et renseigner votre adresse à
-              l&apos;étape suivante. H&amp;H Spirits ne conserve aucune
-              donnée bancaire.
+              carte bancaire ou TWINT à l&apos;étape suivante. H&amp;H
+              Spirits ne conserve aucune donnée bancaire.
             </p>
 
             {/* Les valeurs restent près de leurs libellés : une colonne
                 fixe vaut mieux qu'un justify-between qui les écarte. */}
             <dl className="mt-6">
               {[
-                ["Livraison", "Partout en Suisse"],
                 ["Paiement", "Carte bancaire, TWINT"],
-                ["Retrait", "À Collex-Bossy, sur demande"],
+                ["Livraison", "Partout en Suisse, 2 à 4 jours"],
               ].map(([k, v], i, arr) => (
                 <div
                   key={k}
@@ -183,6 +188,70 @@ export default function CommandePage() {
               ))}
             </dl>
           </div>
+
+          {/* Mode de livraison — choisi ici, pas chez Stripe, où il est
+              relégué sous le formulaire d'adresse et où le total affiché
+              inclut d'emblée les frais de port. */}
+          <fieldset className="mt-10 border-0 p-0">
+            <legend className="text-[0.74rem] uppercase tracking-[0.22em] text-[var(--color-terracotta)]">
+              Comment la recevoir
+            </legend>
+
+            <div className="mt-5 flex flex-col gap-3">
+              {(Object.keys(MODES) as ModeLivraison[]).map((m) => {
+                const choisi = mode === m;
+                const prix =
+                  m === "retrait" ? 0 : fraisDeLivraison(subtotal - remise);
+                return (
+                  <label
+                    key={m}
+                    className="flex cursor-pointer items-start gap-4 rounded-[var(--radius-sm)] border p-4 transition-colors"
+                    style={{
+                      borderColor: choisi
+                        ? "var(--color-terracotta)"
+                        : "var(--color-border-strong)",
+                      background: choisi
+                        ? "var(--color-cream)"
+                        : "transparent",
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="mode"
+                      value={m}
+                      checked={choisi}
+                      onChange={() => setMode(m)}
+                      className="mt-1 accent-[var(--color-terracotta)]"
+                    />
+                    <span className="flex-1">
+                      <span className="flex flex-wrap items-baseline justify-between gap-2">
+                        <span className="text-[0.98rem] text-[var(--color-earth-deep)]">
+                          {MODES[m].libelle}
+                        </span>
+                        <span
+                          className="text-[0.92rem] tabular-nums"
+                          style={{
+                            color:
+                              prix === 0
+                                ? "var(--color-terracotta)"
+                                : "var(--color-earth-500)",
+                          }}
+                        >
+                          {prix === 0 ? "Gratuit" : formatPrice(prix, currency)}
+                        </span>
+                      </span>
+                      <span className="mt-1.5 block text-[0.85rem] leading-relaxed text-[var(--color-earth-500)]">
+                        {MODES[m].detail}
+                      </span>
+                      <span className="mt-1 block text-[0.78rem] uppercase tracking-[0.12em] text-[var(--color-earth-300)]">
+                        {MODES[m].delai}
+                      </span>
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
 
           {/* Vente d'alcool : la confirmation d'âge est obligatoire.
               Le champ reste actif même non coché — un bouton grisé sans
@@ -446,11 +515,6 @@ export default function CommandePage() {
             </p>
           )}
 
-          <p className="mt-3 text-[0.78rem] leading-relaxed text-[var(--color-earth-300)]">
-            {livraison > 0
-              ? "Ou choisissez le retrait gratuit à Collex-Bossy à l'étape suivante."
-              : "Vous pourrez aussi choisir le retrait à Collex-Bossy à l'étape suivante."}
-          </p>
 
           <div
             className="mt-5 flex items-baseline justify-between border-t pt-5"
