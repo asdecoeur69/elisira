@@ -114,14 +114,14 @@ export default async function ConfirmationPage({
         {commande?.courriel ? (
           <>
             Un courriel de confirmation part vers {commande.courriel}. Nous
-            préparons votre commande à Collex-Bossy et vous préviendrons dès
-            qu&apos;elle est expédiée.
+            préparons votre commande à Collex-Bossy et vous écrivons, avec le
+            numéro de suivi, dès qu&apos;elle part.
           </>
         ) : (
           <>
             Vous recevrez un courriel de confirmation dans quelques minutes.
-            Nous préparons votre commande à Collex-Bossy et vous préviendrons
-            dès qu&apos;elle part.
+            Nous préparons votre commande à Collex-Bossy et vous écrivons, avec
+            le numéro de suivi, dès qu&apos;elle part.
           </>
         )}
       </p>

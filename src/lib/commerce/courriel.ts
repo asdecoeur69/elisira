@@ -144,14 +144,14 @@ function gabarit(opts: {
           ${
             retrait
               ? `<p style="margin:10px 0 0;font-size:14px;line-height:1.6;color:#6b6157;">
-                   Chem. des Chaumets 35, 1239 Collex-Bossy.<br />
+                   Chem. des Chaumets <span style="font-family:${CHIFFRES};">35, 1239</span> Collex-Bossy.<br />
                    Nous vous appelons pour convenir d'un créneau.
                  </p>`
               : a
                 ? `<p style="margin:10px 0 0;font-size:14px;line-height:1.6;color:#6b6157;">
                      ${esc(a.nom ?? "")}<br />
-                     ${esc(a.ligne1 ?? "")}${a.ligne2 ? `<br />${esc(a.ligne2)}` : ""}<br />
-                     ${esc(a.codePostal ?? "")} ${esc(a.ville ?? "")}
+                     <span style="font-family:${CHIFFRES};">${esc(a.ligne1 ?? "")}</span>${a.ligne2 ? `<br />${esc(a.ligne2)}` : ""}<br />
+                     <span style="font-family:${CHIFFRES};">${esc(a.codePostal ?? "")}</span> ${esc(a.ville ?? "")}
                    </p>`
                 : ""
           }
@@ -181,7 +181,11 @@ function gabarit(opts: {
         </h1>
         <p style="margin:0 0 28px;font-size:15px;line-height:1.7;color:#6b6157;">
           Votre commande est confirmée et payée. Nous la préparons à
-          Collex-Bossy${retrait ? "" : " et vous préviendrons dès qu'elle est expédiée"}.
+          Collex-Bossy${
+            retrait
+              ? ""
+              : " et vous écrirons, avec le numéro de suivi, dès qu'elle part"
+          }.
         </p>
 
         <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="font-family:Georgia,serif;font-size:15px;">
@@ -209,7 +213,7 @@ function gabarit(opts: {
 
         <p style="margin:30px 0 0;font-size:14px;line-height:1.7;color:#6b6157;">
           Une question ? Répondez simplement à ce courriel, ou appelez-nous
-          au 078 330 46 83.
+          au <a href="tel:+41783304683" style="font-family:${CHIFFRES};color:#c0693f;text-decoration:none;white-space:nowrap;">078 330 46 83</a>.
         </p>
 
         <p style="margin:26px 0 0;font-size:13px;line-height:1.7;color:#a89c8d;">
@@ -221,7 +225,7 @@ function gabarit(opts: {
         </p>
 
         <p style="margin:24px 0 0;padding-top:20px;border-top:1px solid #efe8de;font-size:12px;line-height:1.6;color:#a89c8d;">
-          HH Spirits SNC · Cours des Bastions 13, 1205 Genève<br />
+          HH Spirits SNC · Cours des Bastions <span style="font-family:${CHIFFRES};">13, 1205</span> Genève<br />
           L'abus d'alcool est dangereux pour la santé. À consommer avec
           modération. Vente interdite aux mineurs.
         </p>
