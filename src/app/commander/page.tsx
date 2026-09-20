@@ -5,9 +5,10 @@ import { PageHeader } from "@/components/molecules/PageHeader";
 import { AddToCartButton } from "@/components/molecules/AddToCartButton";
 
 export const metadata: Metadata = {
-  title: "Commander — H&H Spirits",
+  title: "Commander",
   description:
     "Commandez Elisira : la bouteille d'origine 50 cl, l'édition Nero Imperiale 70 cl, et la bougie à la mandarine.",
+  alternates: { canonical: "/commander" },
 };
 
 const PRODUITS = [

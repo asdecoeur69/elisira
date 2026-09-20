@@ -5,9 +5,10 @@ import { ElisiraHero } from "@/components/organisms/ElisiraHero";
 import { AddToCartButton } from "@/components/molecules/AddToCartButton";
 
 export const metadata: Metadata = {
-  title: "Elisira — Liqueur de mandarines siciliennes | H&H Spirits",
+  title: "Elisira — Liqueur de mandarines siciliennes",
   description:
     "La recette de famille aux mandarines biologiques de Sicile, élaborée à Genève. Disponible en 50 cl et en édition Nero Imperiale 70 cl. 28 % vol.",
+  alternates: { canonical: "/elisira" },
 };
 
 const REPERES = [

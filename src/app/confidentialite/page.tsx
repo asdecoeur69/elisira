@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { LegalPage, type Bloc } from "@/components/molecules/LegalPage";
 
 export const metadata: Metadata = {
-  title: "Confidentialité — H&H Spirits",
+  title: "Confidentialité",
   description:
     "Quelles données nous collectons, pourquoi, combien de temps nous les gardons, et comment exercer vos droits.",
+  alternates: { canonical: "/confidentialite" },
 };
 
 const BLOCS: Bloc[] = [

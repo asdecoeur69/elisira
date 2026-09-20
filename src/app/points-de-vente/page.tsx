@@ -3,9 +3,10 @@ import Link from "next/link";
 import { PageHeader } from "@/components/molecules/PageHeader";
 
 export const metadata: Metadata = {
-  title: "Où nous trouver — H&H Spirits",
+  title: "Où nous trouver",
   description:
     "Elisira en vente en ligne, au retrait à Collex-Bossy, et chez nos partenaires à Genève et en Suisse romande.",
+  alternates: { canonical: "/points-de-vente" },
 };
 
 /**

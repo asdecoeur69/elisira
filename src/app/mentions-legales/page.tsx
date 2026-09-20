@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { LegalPage, type Bloc } from "@/components/molecules/LegalPage";
 
 export const metadata: Metadata = {
-  title: "Mentions légales — H&H Spirits",
+  title: "Mentions légales",
   description:
     "Éditeur, hébergement, propriété intellectuelle et responsabilité du site hh-spirits.com.",
+  alternates: { canonical: "/mentions-legales" },
 };
 
 const BLOCS: Bloc[] = [

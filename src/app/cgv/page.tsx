@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { LegalPage, type Bloc } from "@/components/molecules/LegalPage";
 
 export const metadata: Metadata = {
-  title: "Conditions générales — H&H Spirits",
+  title: "Conditions générales",
   description:
     "Conditions générales de vente : commandes, prix, paiement, livraison, droit de retour et garanties.",
+  alternates: { canonical: "/cgv" },
 };
 
 const BLOCS: Bloc[] = [

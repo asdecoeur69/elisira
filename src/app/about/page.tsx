@@ -4,9 +4,10 @@ import Link from "next/link";
 import { PageHeader } from "@/components/molecules/PageHeader";
 
 export const metadata: Metadata = {
-  title: "Notre histoire — H&H Spirits",
+  title: "Notre histoire",
   description:
     "L'histoire de H&H Spirits débute en 2023, autour d'un repas de famille où nous avons redécouvert la liqueur de mandarine transmise par nos aînés.",
+  alternates: { canonical: "/about" },
 };
 
 export default function AboutPage() {
