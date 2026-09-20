@@ -38,24 +38,25 @@ export default async function AdminPage() {
   }
 
   /* La base peut être injoignable : on l'annonce plutôt que d'afficher une
-     page d'erreur générique. */
+     page d'erreur générique. Le `try` n'entoure que la lecture — une erreur
+     survenue pendant le rendu d'un composant ne serait de toute façon pas
+     attrapée ici, mais par `error.tsx`. */
+  let donnees: {
+    commandes: Awaited<ReturnType<typeof listerCommandes>>;
+    stock: Awaited<ReturnType<typeof lireStock>>;
+  } | null = null;
+
   try {
     const [commandes, stock] = await Promise.all([
       listerCommandes(100),
       lireStock(),
     ]);
-
-    const variantes = LOCAL_PRODUCTS.flatMap((p) =>
-      p.variants.edges.map((e) => ({
-        id: e.node.id,
-        titre: p.title,
-        quantite: stock[e.node.id] ?? null,
-      }))
-    );
-
-    return <TableauDeBord commandes={commandes} variantes={variantes} />;
+    donnees = { commandes, stock };
   } catch (e) {
     console.error("[admin] base injoignable", e);
+  }
+
+  if (!donnees) {
     return (
       <Avertissement titre="Base injoignable">
         La connexion a échoué. Vérifiez que <code>DATABASE_URL</code> est
@@ -63,6 +64,16 @@ export default async function AdminPage() {
       </Avertissement>
     );
   }
+
+  const variantes = LOCAL_PRODUCTS.flatMap((p) =>
+    p.variants.edges.map((e) => ({
+      id: e.node.id,
+      titre: p.title,
+      quantite: donnees.stock[e.node.id] ?? null,
+    }))
+  );
+
+  return <TableauDeBord commandes={donnees.commandes} variantes={variantes} />;
 }
 
 function Avertissement({
