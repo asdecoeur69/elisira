@@ -8,9 +8,64 @@ pouvoir y revenir. Tenu à jour par Claude (voir la règle dans `AGENTS.md`).
 
 ---
 
-## P1 — Fiche Google Business Profile
+## P1 — Mise en ligne : ce qui bloque encore
 
-*Évoquée le 2026-09-18. État : à faire.*
+*Audit du 2026-09-20. État : à faire.*
+
+Le code est prêt ; ce qui manque est **de la configuration et du compte**,
+pas du développement. Rien ici ne demande de réécrire le site.
+
+**Bloquants absolus** (le site ne peut pas encaisser sans)
+1. **Compte Stripe inadapté** — le compte lié est français, en euros, et
+   non activé (`charges_enabled: false`, `details_submitted: false`). Le
+   site vend en CHF avec TWINT : il faut un compte **suisse** activé, sans
+   quoi aucun paiement réel n'est possible. C'est le point le plus long
+   (vérification d'identité, coordonnées bancaires) → à lancer en premier.
+2. **`STRIPE_WEBHOOK_SECRET` vide** — le webhook répond 503, donc aucune
+   commande n'est enregistrée et **aucun courriel de confirmation ne
+   part**, alors que les CGV (art. 5) le promettent.
+3. **`RESEND_API_KEY` absente** — même conséquence sur le courriel ; il
+   faut aussi un domaine vérifié chez Resend.
+4. **TWINT à confirmer en mode live** — accepté en test, mais il n'apparaît
+   pas dans les moyens de paiement activés du compte. À vérifier une fois
+   le compte suisse en place, sinon Stripe refusera la session.
+5. **`NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_SITE_LIVE`** absentes de
+   `.env.local` — sans elles le site reste `noindex` et les liens de
+   partage pointent vers localhost.
+
+**Incohérence fonctionnelle à trancher**
+- **Le retrait à Collex-Bossy est annoncé mais impossible.** La page
+  Livraison dit « Choisissez cette option au moment de commander » et le
+  récapitulatif affiche « Retrait : à Collex-Bossy, sur demande » — or le
+  tunnel facture systématiquement 9 CHF de livraison, sans choix. Soit on
+  ajoute l'option au checkout, soit on corrige les deux textes. En l'état,
+  c'est une promesse non tenue au moment de payer.
+
+**À corriger avant d'ouvrir** (rapide, côté code)
+- **Page 404 en anglais** (« This page could not be found ») sur un site
+  suisse francophone, sans en-tête ni pied de page : le visiteur est dans
+  une impasse. Ajouter `src/app/not-found.tsx`.
+- **Aucune page d'erreur** (`error.tsx`) : une erreur client donne un écran
+  blanc.
+- **Aucun en-tête de sécurité** (HSTS, X-Frame-Options, X-Content-Type,
+  Referrer-Policy, Permissions-Policy) — à déclarer dans `next.config.ts`.
+- **Identification légale absente** : ni numéro IDE (CHE-…), ni mention du
+  régime TVA dans les mentions légales et les CGV. À vérifier avec eux
+  selon leur statut et leur chiffre d'affaires.
+- **Paiement indisponible annoncé trop tard** : si Stripe n'est pas
+  configuré, le client remplit tout, clique, et découvre l'erreur. Mieux
+  vaut désactiver le bouton en amont.
+
+**Vérifié bon** — validation serveur des paniers (prix, quantités, codes
+promo recalculés), signature du webhook, aucune clé secrète exposée côté
+client, les 16 routes répondent 200, build de production propre.
+
+---
+
+## P2 — Fiche Google Business Profile
+
+*Évoquée le 2026-09-18. Reportée le 2026-09-20 : à discuter avec Matisse et
+Nathan avant de lancer. État : en attente.*
 
 Créer une fiche Google pour que l'entreprise apparaisse dans le « pack
 local » (la carte avec trois résultats affichée **au-dessus** des liens
@@ -46,19 +101,21 @@ classiques) et pour recueillir des avis clients vérifiables.
 - **Doublon** : si Google a déjà créé une fiche automatiquement, il faut la
   **revendiquer**, pas en créer une seconde.
 
+**Vérifié le 2026-09-20**
+- Aucune fiche n'existe à ce jour → création, pas revendication. Pas de
+  risque de doublon.
+- Ils peuvent recevoir du courrier au Chem. des Chaumets 35 → la
+  vérification par carte postale est possible.
+
 **À faire**
-1. Vérifier en navigation privée s'il existe déjà une fiche
-   (« H&H Spirits », « Elisira Collex-Bossy ») et si elle affiche
-   « Vous êtes propriétaire de cet établissement ? ».
-2. Confirmer qu'ils peuvent recevoir du courrier au Chem. des Chaumets 35
-   (vérification par carte postale).
-3. Créer/revendiquer la fiche **avant** la mise en ligne du site : la
+1. En discuter avec Matisse et Nathan (décision en attente).
+2. Créer la fiche **avant** la mise en ligne du site : la
    vérification prend 1 à 2 semaines et l'ancienneté compte.
-4. Cohérence stricte nom / adresse / téléphone avec `src/lib/seo/site.ts`.
-5. Demander les avis au fil de l'eau, après chaque vente ou mariage.
+3. Cohérence stricte nom / adresse / téléphone avec `src/lib/seo/site.ts`.
+4. Demander les avis au fil de l'eau, après chaque vente ou mariage.
    Aucune contrepartie (réduction, bouteille offerte) : interdit et premier
    motif de signalement.
-6. Répondre aux avis — Google valorise les fiches actives.
+5. Répondre aux avis — Google valorise les fiches actives.
 
 **Notes**
 - Sur « liqueur mandarine Genève », c'est aujourd'hui un **restaurant
