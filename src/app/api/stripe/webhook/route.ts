@@ -97,23 +97,40 @@ async function enregistrerCommande(session: Stripe.Checkout.Session) {
     code: session.metadata?.code || null,
   });
 
-  /* Les lignes ne sont pas incluses dans l'événement : on les redemande. */
+  /* Ni les lignes ni le mode de livraison choisi ne sont développés dans
+     l'événement : on redemande la session complète. Sans ce rappel, le
+     client ne saurait pas, à la lecture du courriel, s'il est livré ou
+     s'il doit venir chercher sa commande. */
   let lignes: Array<{ titre: string; quantite: number; montant: number }> = [];
+  let modeLivraison: string | null = null;
+  let complete = session;
+
   try {
-    const items = await getStripe().checkout.sessions.listLineItems(session.id, {
-      limit: 50,
-    });
+    const stripe = getStripe();
+    const [items, detaillee] = await Promise.all([
+      stripe.checkout.sessions.listLineItems(session.id, { limit: 50 }),
+      stripe.checkout.sessions.retrieve(session.id, {
+        expand: ["shipping_cost.shipping_rate"],
+      }),
+    ]);
+
     lignes = items.data.map((l) => ({
       titre: l.description ?? "Article",
       quantite: l.quantity ?? 1,
       montant: l.amount_total ?? 0,
     }));
+
+    complete = detaillee;
+    const tarif = detaillee.shipping_cost?.shipping_rate;
+    if (tarif && typeof tarif !== "string") {
+      modeLivraison = tarif.display_name ?? null;
+    }
   } catch (e) {
     /* Sans le détail, on envoie quand même : le total suffit à rassurer. */
-    console.error("[commande] lignes illisibles", numero, e);
+    console.error("[commande] détail illisible", numero, e);
   }
 
-  const envoye = await envoyerConfirmation(session, lignes, numero);
+  const envoye = await envoyerConfirmation(complete, lignes, numero, modeLivraison);
   if (!envoye) {
     console.error(
       "[commande] confirmation NON envoyée — à reprendre à la main",
