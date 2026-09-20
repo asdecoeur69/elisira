@@ -41,6 +41,21 @@ export function courrielConfigure() {
   return cle.length > 10;
 }
 
+/**
+ * Pile de polices réservée aux nombres.
+ *
+ * Georgia compose des chiffres elzéviriens : le 3, le 4, le 7 et le 9
+ * plongent sous la ligne de base et chacun a sa largeur. Dans une colonne
+ * de montants, les virgules ne tombent pas les unes sous les autres et la
+ * lecture devient bancale.
+ *
+ * Ces trois serifs-là ont des chiffres alignés et de largeur fixe.
+ * `font-variant-numeric: tabular-nums` serait la façon propre de le
+ * demander, mais Outlook l'ignore : on choisit donc la police plutôt que
+ * la propriété.
+ */
+const CHIFFRES = "'Palatino Linotype',Palatino,'Book Antiqua',Cambria,Georgia,serif";
+
 function francs(centimes: number | null | undefined) {
   return ((centimes ?? 0) / 100).toFixed(2).replace(/\.00$/, ".—");
 }
@@ -97,9 +112,9 @@ function gabarit(opts: {
       (l) => `
       <tr>
         <td style="padding:12px 0;border-top:1px solid #e7e0d6;color:#2b2622;">
-          ${esc(l.titre)} <span style="color:#a89c8d;">× ${l.quantite}</span>
+          ${esc(l.titre)} <span style="color:#a89c8d;font-family:${CHIFFRES};">× ${l.quantite}</span>
         </td>
-        <td style="padding:12px 0;border-top:1px solid #e7e0d6;text-align:right;color:#2b2622;white-space:nowrap;">
+        <td style="padding:12px 0;border-top:1px solid #e7e0d6;text-align:right;color:#2b2622;white-space:nowrap;font-family:${CHIFFRES};">
           ${d} ${francs(l.montant)}
         </td>
       </tr>`
@@ -109,7 +124,7 @@ function gabarit(opts: {
   const extra = (label: string, valeur: string) => `
       <tr>
         <td style="padding:6px 0;color:#6b6157;font-size:14px;">${label}</td>
-        <td style="padding:6px 0;text-align:right;color:#6b6157;font-size:14px;white-space:nowrap;">${valeur}</td>
+        <td style="padding:6px 0;text-align:right;color:#6b6157;font-size:14px;white-space:nowrap;font-family:${CHIFFRES};">${valeur}</td>
       </tr>`;
 
   /* Le mode de livraison : le client vient de le choisir chez Stripe, il
@@ -159,7 +174,7 @@ function gabarit(opts: {
 
       <tr><td style="padding:32px;">
         <p style="margin:0 0 8px;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#c0693f;">
-          Commande ${esc(opts.numero)}
+          Commande <span style="font-family:${CHIFFRES};letter-spacing:2px;">${esc(opts.numero)}</span>
         </p>
         <h1 style="margin:0 0 20px;font-size:26px;font-weight:400;color:#2b2622;">
           Merci${opts.prenom ? `, ${esc(opts.prenom)}` : ""}.
@@ -184,7 +199,7 @@ function gabarit(opts: {
             <td style="padding:16px 0 0;border-top:1px solid #d9cfc2;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#6b6157;">
               Total réglé
             </td>
-            <td style="padding:16px 0 0;border-top:1px solid #d9cfc2;text-align:right;font-size:20px;color:#2b2622;white-space:nowrap;">
+            <td style="padding:16px 0 0;border-top:1px solid #d9cfc2;text-align:right;font-size:20px;color:#2b2622;white-space:nowrap;font-family:${CHIFFRES};">
               ${d} ${francs(opts.total)}
             </td>
           </tr>
