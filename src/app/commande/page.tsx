@@ -146,8 +146,9 @@ export default function CommandePage() {
 
             <p className="body-copy mt-5 max-w-[54ch] text-[0.98rem] leading-relaxed text-[var(--color-earth-500)]">
               Le paiement est sécurisé par Stripe. Vous pourrez régler par
-              carte bancaire ou TWINT et renseigner votre adresse de livraison
-              à l&apos;étape suivante. H&amp;H Spirits ne conserve aucune
+              carte bancaire ou TWINT, choisir la livraison ou le retrait
+              gratuit à Collex-Bossy, et renseigner votre adresse à
+              l&apos;étape suivante. H&amp;H Spirits ne conserve aucune
               donnée bancaire.
             </p>
 
