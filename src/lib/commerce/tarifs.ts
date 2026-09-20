@@ -12,10 +12,29 @@ export const LIVRAISON = 9;
 export const LIVRAISON_OFFERTE_DES = 120;
 export const DEVISE = "chf";
 
+/**
+ * Quantité maximale par ligne.
+ *
+ * Le panier doit appliquer la même borne, sans quoi le client peut
+ * atteindre 25 exemplaires et ne découvrir le refus qu'au moment de payer.
+ */
+export const QUANTITE_MAX = 24;
+
 /** Codes promo. La remise est une fraction du sous-total. */
 export const CODES: Record<string, { remise: number; libelle: string }> = {
   ELISIRA26: { remise: 0.1, libelle: "ELISIRA26 · −10 %" },
 };
+
+/**
+ * Frais de port pour un sous-total déjà remisé, en francs.
+ *
+ * Même règle que `calculerPanier`, mais utilisable côté navigateur pour
+ * l'affichage : l'écart entre les deux est ce qui faisait payer la
+ * livraison à l'écran alors que le serveur l'offrait.
+ */
+export function fraisDeLivraison(sousTotalRemise: number): number {
+  return sousTotalRemise >= LIVRAISON_OFFERTE_DES ? 0 : LIVRAISON;
+}
 
 export type LigneDemandee = { merchandiseId: string; quantity: number };
 
@@ -52,7 +71,10 @@ export type Panier = {
   remise: number;
   livraison: number;
   total: number;
-  code: { libelle: string } | null;
+  /* `clef` et `remise` (fraction, ex. 0.1) permettent à la route de créer
+     un coupon Stripe réutilisable — un par code — plutôt qu'un coupon
+     jetable à chaque requête. */
+  code: { clef: string; libelle: string; remise: number } | null;
 };
 
 /**
@@ -70,28 +92,42 @@ export function calculerPanier(
     throw new Error("Trop de lignes dans le panier.");
   }
 
-  const lignes: LigneValidee[] = [];
+  /* Fusion par produit : deux lignes du même `merchandiseId` sont
+     additionnées avant de vérifier la borne. Sans ça, `QUANTITE_MAX`
+     s'applique par ligne et se contourne en dupliquant la ligne — 20 fois
+     24 = 480 exemplaires passaient. On borne le *cumul*, pas la ligne. */
+  const parProduit = new Map<string, LigneValidee>();
 
   for (const brut of demandees) {
     const id = (brut as LigneDemandee)?.merchandiseId;
     const qte = Number((brut as LigneDemandee)?.quantity);
 
     if (typeof id !== "string") throw new Error("Ligne invalide.");
-    if (!Number.isInteger(qte) || qte < 1 || qte > 24) {
+    if (!Number.isInteger(qte) || qte < 1 || qte > QUANTITE_MAX) {
       throw new Error("Quantité invalide.");
     }
 
     const trouve = trouverVariante(id);
     if (!trouve) throw new Error(`Produit inconnu : ${id}`);
 
-    lignes.push({
-      merchandiseId: id,
-      quantity: qte,
-      titre: trouve.titre,
-      prixUnitaire: trouve.prixUnitaire,
-      image: trouve.image,
-    });
+    const existante = parProduit.get(id);
+    if (existante) {
+      if (existante.quantity + qte > QUANTITE_MAX) {
+        throw new Error("Quantité invalide.");
+      }
+      existante.quantity += qte;
+    } else {
+      parProduit.set(id, {
+        merchandiseId: id,
+        quantity: qte,
+        titre: trouve.titre,
+        prixUnitaire: trouve.prixUnitaire,
+        image: trouve.image,
+      });
+    }
   }
+
+  const lignes: LigneValidee[] = [...parProduit.values()];
 
   const sousTotal = lignes.reduce(
     (t, l) => t + l.prixUnitaire * l.quantity,
@@ -114,6 +150,8 @@ export function calculerPanier(
     remise,
     livraison,
     total: apresRemise + livraison,
-    code: code ? { libelle: code.libelle } : null,
+    code: code
+      ? { clef, libelle: code.libelle, remise: code.remise }
+      : null,
   };
 }

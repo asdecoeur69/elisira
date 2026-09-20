@@ -2,20 +2,29 @@ import type { Metadata } from "next";
 import { LegalPage, type Bloc } from "@/components/molecules/LegalPage";
 
 export const metadata: Metadata = {
-  title: "Mentions légales — H&H Spirits",
+  title: "Mentions légales",
   description:
     "Éditeur, hébergement, propriété intellectuelle et responsabilité du site hh-spirits.com.",
+  alternates: { canonical: "/mentions-legales" },
 };
 
 const BLOCS: Bloc[] = [
   {
     titre: "Éditeur du site",
     reperes: [
-      ["Raison sociale", "H&H Spirits"],
-      ["Adresse", "Chem. des Chaumets 35, 1239 Collex-Bossy"],
+      ["Raison sociale", "H&H Spirits SNC"],
+      ["Numéro IDE", "CHE-325.125.530"],
+      ["Siège social", "Cours des Bastions 13, 1205 Genève"],
+      ["Lieu de production", "Chem. des Chaumets 35, 1239 Collex-Bossy"],
       ["Pays", "Suisse"],
       ["Courriel", "info@hh-spirits.com"],
       ["Téléphone", "+41 78 330 46 83"],
+    ],
+  },
+  {
+    titre: "Taxe sur la valeur ajoutée",
+    paragraphes: [
+      "H&H Spirits SNC n'est pas assujettie à la TVA : les prix affichés sur ce site ne comportent aucune taxe sur la valeur ajoutée, et aucune n'est facturée.",
     ],
   },
   {

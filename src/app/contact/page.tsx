@@ -3,9 +3,10 @@ import Image from "next/image";
 import { PageHeader } from "@/components/molecules/PageHeader";
 
 export const metadata: Metadata = {
-  title: "Contact — H&H Spirits",
+  title: "Contact",
   description:
     "Nous écrire, nous appeler, nous rencontrer. H&H Spirits, Chem. des Chaumets 35, 1239 Collex-Bossy, Genève.",
+  alternates: { canonical: "/contact" },
 };
 
 const CONTACTS = [

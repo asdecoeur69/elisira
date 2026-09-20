@@ -180,7 +180,7 @@ const ELISIRA_70: ShopifyProduct = {
     height: 1152,
   },
   seo: {
-    title: "Elisira Nero Imperiale 70 cl — H&H Spirits",
+    title: "Elisira Nero Imperiale 70 cl — Liqueur de mandarines siciliennes",
     description:
       "La recette originale dans son édition noire, en 70 cl. 28 % vol.",
   },
@@ -240,7 +240,7 @@ const BOUGIE: ShopifyProduct = {
     height: 1188,
   },
   seo: {
-    title: "Bougie mandarine — H&H Spirits",
+    title: "Bougie parfumée à la mandarine sicilienne",
     description:
       "Bougie parfumée à la mandarine, habillée de l'étiquette Elisira.",
   },

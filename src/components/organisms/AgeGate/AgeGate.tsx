@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { AnimatePresence, m } from "framer-motion";
 
@@ -16,6 +17,11 @@ const STORAGE_KEY = "elisira-age-ok";
  * simplement à la visite suivante.
  */
 export function AgeGate() {
+  const chemin = usePathname();
+  /* Le voile protège la vitrine, pas l'arrière-boutique : l'imposer à
+     chaque ouverture du tableau de bord n'apporte rien et agace. */
+  const interne = chemin?.startsWith("/admin") ?? false;
+
   const [ready, setReady] = useState(false);
   const [allowed, setAllowed] = useState(true);
   const [refused, setRefused] = useState(false);
@@ -32,12 +38,12 @@ export function AgeGate() {
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
+    if (interne || !ready) return;
     document.body.style.overflow = allowed ? "" : "hidden";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [ready, allowed]);
+  }, [interne, ready, allowed]);
 
   function accept() {
     try {
@@ -50,7 +56,7 @@ export function AgeGate() {
 
   // Tant qu'on n'a pas lu le stockage, on n'affiche rien : évite que le
   // voile clignote à chaque chargement pour un visiteur déjà vérifié.
-  if (!ready || allowed) return null;
+  if (interne || !ready || allowed) return null;
 
   return (
     <AnimatePresence>

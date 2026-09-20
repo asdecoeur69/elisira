@@ -1,71 +1,96 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useLocalCart, formatPrice } from "@/lib/cart/LocalCartProvider";
+import type { Metadata } from "next";
+import Stripe from "stripe";
+import { getStripe, paiementConfigure } from "@/lib/commerce/stripe";
+import { numeroLisible } from "@/lib/commerce/courriel";
+import { ViderPanier } from "./ConfirmationClient";
+
+export const metadata: Metadata = {
+  title: "Commande confirmée — H&H Spirits",
+  robots: { index: false, follow: false },
+};
 
 /**
  * Confirmation de commande.
  *
- * Le retour de Stripe recharge entièrement la page : le panier local
- * n'est donc pas encore hydraté au premier rendu (il se relit depuis
- * localStorage de façon asynchrone). On attend la première lecture non
- * vide, on la fige pour l'affichage, puis on vide le panier — sans quoi
- * le récapitulatif disparaîtrait sous les yeux du visiteur.
+ * Le récapitulatif est lu chez Stripe à partir du `session_id` renvoyé
+ * dans l'URL de retour : c'est la seule source qui connaisse le montant
+ * réellement débité, la remise appliquée et les frais de port. Le panier
+ * du navigateur, lui, a déjà été vidé et ne peut pas servir de référence.
  */
-export default function ConfirmationPage() {
-  const { resolved, currency, removeLine } = useLocalCart();
 
-  /* Total réglé transmis par l'étape de paiement (remise éventuelle
-     comprise) — lu une seule fois, indépendamment du panier. */
-  const [regle] = useState<number | null>(() => {
-    try {
-      const brut = sessionStorage.getItem("elisira-commande");
-      if (brut) {
-        const d = JSON.parse(brut);
-        if (typeof d?.total === "number") return d.total;
-      }
-    } catch {
-      /* Rien de stocké : on retombe sur le calcul simple. */
-    }
-    return null;
-  });
-  const [codePromo] = useState<string | null>(() => {
-    try {
-      const brut = sessionStorage.getItem("elisira-commande");
-      if (brut) {
-        const d = JSON.parse(brut);
-        if (typeof d?.code === "string") return d.code;
-      }
-    } catch {
-      /* idem */
-    }
-    return null;
-  });
+type Recap = {
+  numero: string;
+  lignes: Array<{ titre: string; quantite: number; montant: number }>;
+  total: number;
+  livraison: number | null;
+  remise: number;
+  code: string | null;
+  devise: string;
+  courriel: string | null;
+};
 
-  /* Instantané du panier avant vidage : le panier ne s'hydrate depuis
-     localStorage qu'après le premier rendu (retour Stripe = rechargement
-     complet de la page), donc `resolved` peut être vide un court instant.
-     On retient la première liste non vide observée, en ajustant le state
-     pendant le rendu plutôt que dans un effet — cf. la doc React sur
-     l'ajustement de state pendant le rendu. */
-  const [fige, setFige] = useState<typeof resolved>([]);
-  if (fige.length === 0 && resolved.length > 0) {
-    setFige(resolved);
+/** Montants Stripe : centimes → francs. */
+function francs(centimes: number | null | undefined) {
+  return (centimes ?? 0) / 100;
+}
+
+function formater(montant: number, devise: string) {
+  return `${devise.toUpperCase()} ${montant.toFixed(2).replace(/\.00$/, ".—")}`;
+}
+
+async function lireCommande(sessionId: string): Promise<Recap | null> {
+  if (!paiementConfigure()) return null;
+
+  let session: Stripe.Response<Stripe.Checkout.Session>;
+  try {
+    session = await getStripe().checkout.sessions.retrieve(sessionId, {
+      expand: ["line_items"],
+    });
+  } catch (e) {
+    /* Identifiant inconnu ou trafiqué : on retombe sur le message
+       générique plutôt que d'afficher une erreur au client. */
+    console.error("[confirmation] session illisible", e);
+    return null;
   }
 
-  const vide = useRef(false);
-  useEffect(() => {
-    if (vide.current) return;
-    if (resolved.length === 0) return; // pas encore hydraté (ou vraiment vide)
-    vide.current = true;
-    resolved.forEach((l) => removeLine(l.merchandiseId));
-  }, [resolved, removeLine]);
+  /* On n'affiche un récapitulatif que pour une commande réellement payée :
+     un `session_id` valide mais abandonné ne doit pas ressembler à un
+     achat confirmé. */
+  if (session.payment_status !== "paid") return null;
 
-  const numero = `EL-${new Date().getFullYear()}-0148`;
+  const devise = session.currency ?? "chf";
+
+  return {
+    numero: numeroLisible(session.id, session.created),
+    lignes: (session.line_items?.data ?? []).map((l) => ({
+      titre: l.description ?? "Article",
+      quantite: l.quantity ?? 1,
+      montant: francs(l.amount_total),
+    })),
+    total: francs(session.amount_total),
+    livraison: session.total_details?.amount_shipping != null
+      ? francs(session.total_details.amount_shipping)
+      : null,
+    remise: francs(session.total_details?.amount_discount),
+    code: session.metadata?.code || null,
+    devise,
+    courriel: session.customer_details?.email ?? null,
+  };
+}
+
+export default async function ConfirmationPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ session_id?: string }>;
+}) {
+  const { session_id } = await searchParams;
+  const commande = session_id ? await lireCommande(session_id) : null;
 
   return (
     <section className="mx-auto max-w-[760px] px-6 pb-[var(--spacing-section)] pt-[calc(var(--header-h)+56px)] lg:px-10">
+      <ViderPanier />
+
       <ol className="flex flex-wrap items-center gap-3 text-[0.68rem] uppercase tracking-[0.2em]">
         <li className="text-[var(--color-earth-300)]">Panier</li>
         <li className="text-[var(--color-earth-300)]">·</li>
@@ -74,9 +99,11 @@ export default function ConfirmationPage() {
         <li className="text-[var(--color-terracotta)]">Confirmation</li>
       </ol>
 
-      <p className="mt-10 text-[0.7rem] uppercase tracking-[0.34em] text-[var(--color-terracotta)]">
-        Commande {numero}
-      </p>
+      {commande && (
+        <p className="mt-10 text-[0.7rem] uppercase tracking-[0.34em] text-[var(--color-terracotta)]">
+          Commande {commande.numero}
+        </p>
+      )}
 
       <h1 className="mt-6 text-[length:var(--text-h2)]">
         Merci, votre commande{" "}
@@ -84,63 +111,83 @@ export default function ConfirmationPage() {
       </h1>
 
       <p className="body-copy mt-7 text-[length:var(--text-lead)] font-light text-[var(--color-earth-500)]">
-        Vous recevrez un courriel de confirmation dans quelques minutes. Nous
-        préparons votre commande à Collex-Bossy et vous préviendrons dès
-        qu&apos;elle part.
+        {commande?.courriel ? (
+          <>
+            Un courriel de confirmation part vers {commande.courriel}. Nous
+            préparons votre commande à Collex-Bossy et vous écrivons, avec le
+            numéro de suivi, dès qu&apos;elle part.
+          </>
+        ) : (
+          <>
+            Vous recevrez un courriel de confirmation dans quelques minutes.
+            Nous préparons votre commande à Collex-Bossy et vous écrivons, avec
+            le numéro de suivi, dès qu&apos;elle part.
+          </>
+        )}
       </p>
 
-
-      {fige.length > 0 && (
+      {commande && (
         <div className="mt-14">
           <h2 className="text-[0.72rem] uppercase tracking-[0.22em] text-[var(--color-terracotta)]">
             Votre commande
           </h2>
 
           <ul className="mt-6">
-            {fige.map((line, i) => (
+            {commande.lignes.map((ligne, i) => (
               <li
-                key={line.merchandiseId}
+                key={`${ligne.titre}-${i}`}
                 className="flex items-baseline justify-between gap-4 border-t py-4"
                 style={{
                   borderColor: "var(--hairline)",
-                  borderBottomWidth: i === fige.length - 1 ? 1 : 0,
+                  borderBottomWidth: i === commande.lignes.length - 1 ? 1 : 0,
                   borderBottomStyle: "solid",
                 }}
               >
                 <span className="font-[family-name:var(--font-heading)] text-[1.05rem] text-[var(--color-earth-deep)]">
-                  {line.product.title}
+                  {ligne.titre}
                   <span className="ml-2 text-[0.85rem] text-[var(--color-earth-300)]">
-                    × {line.quantity}
+                    × {ligne.quantite}
                   </span>
                 </span>
                 <span className="font-[family-name:var(--font-heading)] text-[1.05rem] tabular-nums text-[var(--color-earth-deep)]">
-                  {formatPrice(line.lineTotal, currency)}
+                  {formater(ligne.montant, commande.devise)}
                 </span>
               </li>
             ))}
           </ul>
 
-          {codePromo && (
+          {commande.remise > 0 && (
             <div className="mt-5 flex items-baseline justify-between">
               <span className="text-[0.8rem] text-[var(--color-terracotta)]">
-                Code appliqué
+                Remise{commande.code ? ` · ${commande.code}` : ""}
               </span>
-              <span className="text-[0.8rem] uppercase tracking-[0.12em] text-[var(--color-terracotta)]">
-                {codePromo}
+              <span className="text-[0.8rem] text-[var(--color-terracotta)]">
+                − {formater(commande.remise, commande.devise)}
               </span>
             </div>
           )}
 
-          <div className="mt-5 flex items-baseline justify-between">
+          {commande.livraison !== null && (
+            <div className="mt-3 flex items-baseline justify-between">
+              <span className="text-[0.8rem] text-[var(--color-earth-500)]">
+                {commande.livraison === 0
+                  ? "Livraison offerte"
+                  : "Livraison en Suisse"}
+              </span>
+              <span className="text-[0.8rem] text-[var(--color-earth-500)]">
+                {commande.livraison === 0
+                  ? "Offerte"
+                  : formater(commande.livraison, commande.devise)}
+              </span>
+            </div>
+          )}
+
+          <div className="mt-5 flex items-baseline justify-between border-t pt-5" style={{ borderColor: "var(--hairline-strong)" }}>
             <span className="text-[0.76rem] uppercase tracking-[0.2em] text-[var(--color-earth-500)]">
               Total réglé
             </span>
             <span className="font-[family-name:var(--font-heading)] text-[1.5rem] text-[var(--color-earth-deep)]">
-              {formatPrice(
-                regle ??
-                  fige.reduce((sum, l) => sum + l.lineTotal, 0) + 9,
-                currency
-              )}
+              {formater(commande.total, commande.devise)}
             </span>
           </div>
         </div>

@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { LegalPage, type Bloc } from "@/components/molecules/LegalPage";
 
 export const metadata: Metadata = {
-  title: "Livraison & retours — H&H Spirits",
+  title: "Livraison & retours",
   description:
     "Livraison en Suisse sous 2 à 4 jours ouvrables, retrait gratuit à Collex-Bossy sur rendez-vous. Frais, délais et conditions de retour.",
+  alternates: { canonical: "/livraison" },
 };
 
 const BLOCS: Bloc[] = [

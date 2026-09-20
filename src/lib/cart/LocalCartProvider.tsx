@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { LOCAL_PRODUCTS } from "@/lib/catalog/local";
+import { QUANTITE_MAX } from "@/lib/commerce/tarifs";
 import type { ShopifyProduct, ShopifyProductVariant } from "@/lib/catalog/types";
 
 /**
@@ -83,13 +84,21 @@ export function LocalCartProvider({ children }: { children: React.ReactNode }) {
         const parsed: unknown = JSON.parse(raw);
         if (Array.isArray(parsed)) {
           setLines(
-            parsed.filter(
-              (l): l is LocalCartLine =>
-                typeof l === "object" &&
-                l !== null &&
-                typeof (l as LocalCartLine).merchandiseId === "string" &&
-                typeof (l as LocalCartLine).quantity === "number"
-            )
+            parsed
+              .filter(
+                (l): l is LocalCartLine =>
+                  typeof l === "object" &&
+                  l !== null &&
+                  typeof (l as LocalCartLine).merchandiseId === "string" &&
+                  typeof (l as LocalCartLine).quantity === "number"
+              )
+              /* Un panier vieilli ou bricolé à la main peut dépasser la
+                 borne du serveur : on le ramène dans les clous ici, sinon
+                 le refus n'arriverait qu'au moment de payer. */
+              .map((l) => ({
+                ...l,
+                quantity: Math.min(Math.max(Math.trunc(l.quantity), 1), QUANTITE_MAX),
+              }))
           );
         }
       }
@@ -122,10 +131,18 @@ export function LocalCartProvider({ children }: { children: React.ReactNode }) {
       for (const line of incoming) {
         if (line.quantity <= 0) continue;
         const i = next.findIndex((l) => l.merchandiseId === line.merchandiseId);
+        /* Plafonné à la borne du serveur : sans cela, le client peut
+           dépasser et n'apprendre le refus qu'au moment de payer. */
         if (i >= 0) {
-          next[i] = { ...next[i], quantity: next[i].quantity + line.quantity };
+          next[i] = {
+            ...next[i],
+            quantity: Math.min(next[i].quantity + line.quantity, QUANTITE_MAX),
+          };
         } else {
-          next.push({ ...line });
+          next.push({
+            ...line,
+            quantity: Math.min(line.quantity, QUANTITE_MAX),
+          });
         }
       }
       return next;
@@ -138,7 +155,9 @@ export function LocalCartProvider({ children }: { children: React.ReactNode }) {
       quantity <= 0
         ? prev.filter((l) => l.merchandiseId !== merchandiseId)
         : prev.map((l) =>
-            l.merchandiseId === merchandiseId ? { ...l, quantity } : l
+            l.merchandiseId === merchandiseId
+              ? { ...l, quantity: Math.min(quantity, QUANTITE_MAX) }
+              : l
           )
     );
   }, []);

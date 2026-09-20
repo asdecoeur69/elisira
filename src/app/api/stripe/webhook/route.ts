@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/commerce/stripe";
+import { envoyerConfirmation, numeroLisible } from "@/lib/commerce/courriel";
+import {
+  baseConfiguree,
+  decrementerStock,
+  enregistrerCommande as enregistrerEnBase,
+} from "@/lib/admin/db";
+import { LOCAL_PRODUCTS } from "@/lib/catalog/local";
 import type Stripe from "stripe";
 
 /**
@@ -72,16 +79,22 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Journalise la commande payée.
+ * Journalise la commande payée et envoie la confirmation au client.
  *
- * Volontairement minimal : le tableau de bord Stripe fait office de
- * back-office au démarrage. C'est ici que viendra l'envoi du courriel de
- * confirmation, puis l'enregistrement en base le jour venu.
+ * Le tableau de bord Stripe fait office de back-office au démarrage :
+ * l'enregistrement en base viendra le jour venu. Le courriel, lui, est
+ * promis par les CGV et par la page de confirmation — il part d'ici.
+ *
+ * Un échec d'envoi ne fait pas échouer le webhook : la commande est
+ * payée, et redemander l'événement à Stripe risquerait d'envoyer le
+ * courriel deux fois. On journalise pour pouvoir rattraper à la main.
  */
 async function enregistrerCommande(session: Stripe.Checkout.Session) {
   const client = session.customer_details;
+  const numero = numeroLisible(session.id, session.created);
 
   console.log("[commande] payée", {
+    numero,
     id: session.id,
     montant: session.amount_total,
     devise: session.currency,
@@ -89,4 +102,86 @@ async function enregistrerCommande(session: Stripe.Checkout.Session) {
     nom: client?.name,
     code: session.metadata?.code || null,
   });
+
+  /* Ni les lignes ni le mode de livraison choisi ne sont développés dans
+     l'événement : on redemande la session complète. Sans ce rappel, le
+     client ne saurait pas, à la lecture du courriel, s'il est livré ou
+     s'il doit venir chercher sa commande. */
+  let lignes: Array<{ titre: string; quantite: number; montant: number }> = [];
+  let modeLivraison: string | null = null;
+  let complete = session;
+
+  try {
+    const stripe = getStripe();
+    const [items, detaillee] = await Promise.all([
+      stripe.checkout.sessions.listLineItems(session.id, { limit: 50 }),
+      stripe.checkout.sessions.retrieve(session.id, {
+        expand: ["shipping_cost.shipping_rate"],
+      }),
+    ]);
+
+    lignes = items.data.map((l) => ({
+      titre: l.description ?? "Article",
+      quantite: l.quantity ?? 1,
+      montant: l.amount_total ?? 0,
+    }));
+
+    complete = detaillee;
+    const tarif = detaillee.shipping_cost?.shipping_rate;
+    if (tarif && typeof tarif !== "string") {
+      modeLivraison = tarif.display_name ?? null;
+    }
+  } catch (e) {
+    /* Sans le détail, on envoie quand même : le total suffit à rassurer. */
+    console.error("[commande] détail illisible", numero, e);
+  }
+
+  /* Enregistrement en base, pour le tableau de bord.
+     Volontairement isolé : si la base est injoignable, la commande reste
+     payée et le client reçoit sa confirmation. Mieux vaut une commande
+     absente du tableau de bord — rattrapable depuis Stripe — qu'un webhook
+     en échec que Stripe rejouerait indéfiniment. */
+  if (baseConfiguree()) {
+    try {
+      const adr = complete.collected_information?.shipping_details?.address;
+      await enregistrerEnBase({
+        sessionId: complete.id,
+        numero,
+        nom: client?.name ?? null,
+        email: client?.email ?? null,
+        tel: client?.phone ?? null,
+        adresse: adr
+          ? [adr.line1, adr.line2, `${adr.postal_code ?? ""} ${adr.city ?? ""}`.trim()]
+              .filter(Boolean)
+              .join("\n")
+          : null,
+        mode: modeLivraison,
+        total: complete.amount_total ?? 0,
+        devise: complete.currency ?? "chf",
+        lignes,
+      });
+
+      /* Le stock suit les variantes du catalogue, que Stripe ne connaît
+         pas : on les retrouve par le titre du produit. */
+      const parTitre = new Map<string, string>();
+      for (const p of LOCAL_PRODUCTS) {
+        for (const e of p.variants.edges) parTitre.set(p.title, e.node.id);
+      }
+      const mouvements = lignes
+        .map((l) => ({ variante: parTitre.get(l.titre) ?? "", quantite: l.quantite }))
+        .filter((m) => m.variante);
+      if (mouvements.length) await decrementerStock(mouvements);
+    } catch (e) {
+      console.error("[commande] enregistrement en base échoué", numero, e);
+    }
+  }
+
+  const envoye = await envoyerConfirmation(complete, lignes, numero, modeLivraison);
+  if (!envoye) {
+    console.error(
+      "[commande] confirmation NON envoyée — à reprendre à la main",
+      numero,
+      client?.email
+    );
+  }
 }

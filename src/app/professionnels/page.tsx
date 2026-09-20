@@ -3,9 +3,10 @@ import Image from "next/image";
 import { PageHeader } from "@/components/molecules/PageHeader";
 
 export const metadata: Metadata = {
-  title: "Professionnels — H&H Spirits",
+  title: "Professionnels",
   description:
     "Bars, restaurants et caves : référencez Elisira, liqueur de mandarines siciliennes élaborée à Genève. Dégustation sur place, livraison directe.",
+  alternates: { canonical: "/professionnels" },
 };
 
 const MAILTO_DEGUSTATION =

@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { LegalPage, type Bloc } from "@/components/molecules/LegalPage";
 
 export const metadata: Metadata = {
-  title: "Confidentialité — H&H Spirits",
+  title: "Confidentialité",
   description:
     "Quelles données nous collectons, pourquoi, combien de temps nous les gardons, et comment exercer vos droits.",
+  alternates: { canonical: "/confidentialite" },
 };
 
 const BLOCS: Bloc[] = [
@@ -42,13 +43,26 @@ const BLOCS: Bloc[] = [
   {
     titre: "Destinataires",
     paragraphes: [
-      "Vos données ne sont transmises qu'aux prestataires nécessaires à l'exécution de la commande : le transporteur pour la livraison, le prestataire de paiement pour la transaction, et notre hébergeur. Chacun n'accède qu'à ce qui lui est indispensable.",
+      "Vos données ne sont transmises qu'aux prestataires nécessaires à l'exécution de la commande, et chacun n'accède qu'à ce qui lui est indispensable :",
+    ],
+    liste: [
+      "Stripe, pour le paiement — c'est lui, et non nous, qui traite vos données bancaires.",
+      "Resend, pour l'envoi du courriel de confirmation.",
+      "Vercel, pour l'hébergement du site.",
+      "La Poste Suisse, pour l'acheminement de votre colis.",
+    ],
+  },
+  {
+    titre: "Transferts hors de Suisse",
+    paragraphes: [
+      "Stripe, Resend et Vercel sont des sociétés américaines : vos données peuvent être traitées hors de Suisse. Ces transferts reposent sur les garanties contractuelles prévues par ces prestataires, conformément à la loi fédérale sur la protection des données.",
+      "La Poste Suisse, elle, traite vos données de livraison en Suisse.",
     ],
   },
   {
     titre: "Durée de conservation",
     paragraphes: [
-      "Les données de commande sont conservées dix ans, conformément aux obligations comptables suisses. Les messages envoyés via le formulaire de contact sont supprimés au bout de deux ans.",
+      "Les données de commande sont conservées dix ans, conformément aux obligations comptables suisses. Les courriels que vous nous adressez sont conservés deux ans, puis supprimés.",
     ],
   },
   {
@@ -67,7 +81,7 @@ const BLOCS: Bloc[] = [
   {
     titre: "Nous contacter",
     paragraphes: [
-      "Pour toute question relative à vos données : info@hh-spirits.com, ou H&H Spirits, Chem. des Chaumets 35, 1239 Collex-Bossy, Suisse.",
+      "Pour toute question relative à vos données : info@hh-spirits.com, ou H&H Spirits SNC, Cours des Bastions 13, 1205 Genève, Suisse.",
     ],
   },
 ];

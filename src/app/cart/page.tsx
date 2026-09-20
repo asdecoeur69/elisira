@@ -4,10 +4,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { useLocalCart, formatPrice } from "@/lib/cart/LocalCartProvider";
 import { PageHeader } from "@/components/molecules/PageHeader";
+import { LIVRAISON_OFFERTE_DES, fraisDeLivraison } from "@/lib/commerce/tarifs";
 
 export default function CartPage() {
   const { resolved, setQuantity, removeLine, subtotal, currency } =
     useLocalCart();
+
+  /* Frais de port estimés, depuis la même règle que le serveur. Le panier
+     ne connaît pas encore d'éventuel code promo : c'est une estimation
+     haute, jamais une mauvaise surprise à l'étape suivante. */
+  const livraison = fraisDeLivraison(subtotal);
+  const manquePourGratuite = LIVRAISON_OFFERTE_DES - subtotal;
 
   return (
     <>
@@ -136,8 +143,43 @@ export default function CartPage() {
                   </span>
                 </div>
 
-                <p className="mt-3 text-[0.8rem] text-[var(--color-earth-300)]">
-                  Les frais de livraison seront calculés à l&apos;étape
+                <div className="mt-4 flex items-baseline justify-between">
+                  <span className="text-[0.92rem] text-[var(--color-earth-500)]">
+                    Livraison
+                  </span>
+                  <span
+                    className="text-[0.92rem]"
+                    style={{
+                      color:
+                        livraison === 0
+                          ? "var(--color-terracotta)"
+                          : "var(--color-earth-500)",
+                    }}
+                  >
+                    {livraison === 0
+                      ? "Offerte"
+                      : formatPrice(livraison, currency)}
+                  </span>
+                </div>
+
+                {/* Le seuil de gratuité est l'argument le plus rentable du
+                    site : le taire dans le panier, c'est le perdre au seul
+                    endroit où il peut encore faire ajouter un article. */}
+                {livraison > 0 ? (
+                  <p className="mt-3 text-[0.8rem] leading-relaxed text-[var(--color-terracotta)]">
+                    Plus que {formatPrice(manquePourGratuite, currency)} pour la
+                    livraison offerte.
+                  </p>
+                ) : (
+                  <p className="mt-3 text-[0.8rem] leading-relaxed text-[var(--color-earth-300)]">
+                    Livraison offerte dès{" "}
+                    {formatPrice(LIVRAISON_OFFERTE_DES, currency)}{" "}
+                    d&apos;achat.
+                  </p>
+                )}
+
+                <p className="mt-3 text-[0.78rem] leading-relaxed text-[var(--color-earth-300)]">
+                  Montant définitif, code promo éventuel compris, à l&apos;étape
                   suivante.
                 </p>
 
