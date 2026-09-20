@@ -92,36 +92,6 @@ mailtos B2B pré-remplis (établissement, adresse, contact).
 - **Paiement indisponible annoncé trop tard** : si Stripe n'est pas
   configuré, le client remplit tout, clique, et découvre l'erreur.
 
-**Audit de sécurité du 2026-09-20 — ce qui a été attaqué et a tenu**
-
-Tests réels contre l'API, pas une relecture de code :
-- *Prix* — injection de `price`/`prixUnitaire`/`amount` dans les lignes :
-  ignorée, Stripe facture bien 39 CHF au lieu de 0.01.
-- *Quantités* — 0, négatives, décimales, `Infinity`, `NaN`, texte : toutes
-  refusées sauf `"5"` (chaîne numérique), qui donne correctement 150 CHF.
-- *Âge* — `majeur` en chaîne, en nombre, absent : tous refusés.
-- *Codes promo* — `__proto__`, `constructor`, `toString`, `valueOf`,
-  objets, tableaux : aucune remise accordée (vérifié sur Stripe, remise 0).
-- *Pollution de prototype* — `__proto__` dans le corps : sans effet.
-- *Déni de service* — 500 lignes refusées, corps de 5 Mo absorbé.
-- *Webhook avec secret* (conditions Vercel) — signature absente, bidon ou
-  malformée, faux paiement de 9 999 CHF : **tous rejetés en 400**.
-- *XSS* — `<script>` et `onerror` dans `session_id`, les chemins produit
-  et `utm_source` : aucune réflexion non échappée.
-- *Fuite de secrets* — aucune clé (`sk_`, `whsec_`, Resend) dans le HTML
-  servi.
-- *Données client* — une session non payée ou inventée n'affiche ni
-  récapitulatif, ni numéro, ni courriel ; la page est en `noindex`.
-- *Méthodes HTTP* — GET/PUT/DELETE/PATCH sur l'API : 405.
-- *Vie privée* — **aucun cookie déposé, aucune requête externe, aucun
-  traceur** ; polices auto-hébergées. Juridiquement confortable : pas de
-  bandeau cookies nécessaire.
-
-**Vérifié bon par ailleurs** — validation serveur des paniers, les 16
-routes répondent 200, build de production propre, parcours complet
-(age gate → panier → commande → session Stripe) testé sous CSP sans une
-seule erreur de console.
-
 ---
 
 ## P2 — Fiche Google Business Profile
@@ -282,6 +252,45 @@ Trois bloquants corrigés (montants faux, numéro de commande figé, courriel
 de confirmation jamais envoyé), deux incohérences client/serveur (plafond
 de quantité, codes promo dupliqués), SEO technique complet, code mort
 supprimé. Voir l'historique git, branche `corrections-commande-et-seo`.
+
+### Audit de sécurité — attaque poussée — *fait le 2026-09-20*
+Deux passes d'attaque réelle contre l'API en marche (requêtes envoyées,
+montants et objets vérifiés directement chez Stripe, pas une relecture de
+code).
+
+*A tenu sans faille* — injection de prix, pollution de prototype
+(`__proto__`), codes promo trafiqués (objets, tableaux, `constructor`…),
+quantités aberrantes, coercion de type ; **webhook infalsifiable**
+(signature absente/bidon/malformée → 400, corps modifié sous signature
+valide → 400, rejeu d'un événement signé → détecté `duplicate`) ; pas de
+SSRF par l'image, pas de traversée de chemin, `.env`/`.git`/config → 404 ;
+pas de XSS réfléchi ; aucune fuite de clé dans le HTML ; en-têtes de
+sécurité présents jusque sur les 404 et les routes API ; aucun cookie ni
+traceur.
+
+*Deux faiblesses trouvées, toutes deux corrigées le 2026-09-20 :*
+1. **Plafond de 24 contournable par duplication de lignes** (480
+   exemplaires passaient ; montant juste, donc pas de fraude au prix mais
+   promesse de stock intenable). Corrigé dans `calculerPanier` : les
+   lignes d'un même produit sont fusionnées et le cumul est borné à
+   `QUANTITE_MAX`. Vérifié : 12+12 → une seule ligne de 24, 12+13 → refus.
+2. **Aucune limitation de débit sur `/api/checkout`**, et un coupon Stripe
+   permanent créé à *chaque* commande remisée (fuite de coupons + risque
+   de saturation du quota et de facture gonflée en live). Corrigé :
+   coupon `percent_off` réutilisable (un seul `promo_ELISIRA26`, réutilisé
+   d'une commande à l'autre — vérifié) et limiteur en mémoire, 10 req/min
+   par IP avec `Retry-After` (nouveau `src/lib/commerce/limite.ts`).
+   Vérifié : bascule en 429 après 10 requêtes, non-régression du parcours
+   normal confirmée.
+
+*Limite assumée (pas un défaut)* — l'age gate reste déclaratif : un
+`majeur:true` envoyé directement à l'API suffit. C'est le standard suisse
+pour la vente d'alcool en ligne ; à ne traiter que si un contrôle d'âge
+réel devient une exigence (p. ex. à la livraison, côté transporteur).
+
+*Hygiène* — les tests ont créé des sessions et coupons **en mode test**
+(clés `sk_test_`, aucun argent) : dashboard de test à purger si besoin,
+sans effet sur le live.
 
 ### Nettoyage des images — *abandonné le 2026-09-20*
 21 MB de photos non référencées identifiées. Le propriétaire a choisi de

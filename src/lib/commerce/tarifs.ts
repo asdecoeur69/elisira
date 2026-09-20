@@ -71,7 +71,10 @@ export type Panier = {
   remise: number;
   livraison: number;
   total: number;
-  code: { libelle: string } | null;
+  /* `clef` et `remise` (fraction, ex. 0.1) permettent à la route de créer
+     un coupon Stripe réutilisable — un par code — plutôt qu'un coupon
+     jetable à chaque requête. */
+  code: { clef: string; libelle: string; remise: number } | null;
 };
 
 /**
@@ -89,7 +92,11 @@ export function calculerPanier(
     throw new Error("Trop de lignes dans le panier.");
   }
 
-  const lignes: LigneValidee[] = [];
+  /* Fusion par produit : deux lignes du même `merchandiseId` sont
+     additionnées avant de vérifier la borne. Sans ça, `QUANTITE_MAX`
+     s'applique par ligne et se contourne en dupliquant la ligne — 20 fois
+     24 = 480 exemplaires passaient. On borne le *cumul*, pas la ligne. */
+  const parProduit = new Map<string, LigneValidee>();
 
   for (const brut of demandees) {
     const id = (brut as LigneDemandee)?.merchandiseId;
@@ -103,14 +110,24 @@ export function calculerPanier(
     const trouve = trouverVariante(id);
     if (!trouve) throw new Error(`Produit inconnu : ${id}`);
 
-    lignes.push({
-      merchandiseId: id,
-      quantity: qte,
-      titre: trouve.titre,
-      prixUnitaire: trouve.prixUnitaire,
-      image: trouve.image,
-    });
+    const existante = parProduit.get(id);
+    if (existante) {
+      if (existante.quantity + qte > QUANTITE_MAX) {
+        throw new Error("Quantité invalide.");
+      }
+      existante.quantity += qte;
+    } else {
+      parProduit.set(id, {
+        merchandiseId: id,
+        quantity: qte,
+        titre: trouve.titre,
+        prixUnitaire: trouve.prixUnitaire,
+        image: trouve.image,
+      });
+    }
   }
+
+  const lignes: LigneValidee[] = [...parProduit.values()];
 
   const sousTotal = lignes.reduce(
     (t, l) => t + l.prixUnitaire * l.quantity,
@@ -133,6 +150,8 @@ export function calculerPanier(
     remise,
     livraison,
     total: apresRemise + livraison,
-    code: code ? { libelle: code.libelle } : null,
+    code: code
+      ? { clef, libelle: code.libelle, remise: code.remise }
+      : null,
   };
 }
