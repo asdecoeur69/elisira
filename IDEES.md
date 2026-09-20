@@ -41,24 +41,59 @@ pas du développement. Rien ici ne demande de réécrire le site.
   ajoute l'option au checkout, soit on corrige les deux textes. En l'état,
   c'est une promesse non tenue au moment de payer.
 
-**À corriger avant d'ouvrir** (rapide, côté code)
-- **Page 404 en anglais** (« This page could not be found ») sur un site
-  suisse francophone, sans en-tête ni pied de page : le visiteur est dans
-  une impasse. Ajouter `src/app/not-found.tsx`.
-- **Aucune page d'erreur** (`error.tsx`) : une erreur client donne un écran
-  blanc.
-- **Aucun en-tête de sécurité** (HSTS, X-Frame-Options, X-Content-Type,
-  Referrer-Policy, Permissions-Policy) — à déclarer dans `next.config.ts`.
+**Corrigé le 2026-09-20** (commit `81d663a`)
+- En-têtes de sécurité ajoutés : le site était **encadrable en iframe**
+  (clickjacking sur la page de commande). X-Frame-Options, CSP, HSTS,
+  nosniff, Referrer-Policy, Permissions-Policy. `X-Powered-By` retiré.
+- `dangerouslyAllowSVG` et les domaines Shopify supprimés de la config :
+  voie d'injection ouverte pour rien, le catalogue étant local.
+- Page 404 française avec navigation, et page d'erreur (écran blanc
+  auparavant).
+
+**Reste à traiter**
 - **Identification légale absente** : ni numéro IDE (CHE-…), ni mention du
   régime TVA dans les mentions légales et les CGV. À vérifier avec eux
-  selon leur statut et leur chiffre d'affaires.
+  selon leur statut et leur chiffre d'affaires. *(Ne peut pas être
+  inventé — information à leur demander.)*
+- **La politique de confidentialité mentionne un « formulaire de
+  contact »** qui n'existe pas (contact par téléphone et courriel
+  uniquement), et annonce une suppression des messages à deux ans.
+- **Sous-traitants non nommés** dans la politique : Stripe, Resend et
+  Vercel n'y figurent pas, et aucun transfert de données hors de Suisse
+  n'est mentionné alors que les trois sont américains. La LPD demande
+  d'informer sur ces communications.
 - **Paiement indisponible annoncé trop tard** : si Stripe n'est pas
-  configuré, le client remplit tout, clique, et découvre l'erreur. Mieux
-  vaut désactiver le bouton en amont.
+  configuré, le client remplit tout, clique, et découvre l'erreur.
 
-**Vérifié bon** — validation serveur des paniers (prix, quantités, codes
-promo recalculés), signature du webhook, aucune clé secrète exposée côté
-client, les 16 routes répondent 200, build de production propre.
+**Audit de sécurité du 2026-09-20 — ce qui a été attaqué et a tenu**
+
+Tests réels contre l'API, pas une relecture de code :
+- *Prix* — injection de `price`/`prixUnitaire`/`amount` dans les lignes :
+  ignorée, Stripe facture bien 39 CHF au lieu de 0.01.
+- *Quantités* — 0, négatives, décimales, `Infinity`, `NaN`, texte : toutes
+  refusées sauf `"5"` (chaîne numérique), qui donne correctement 150 CHF.
+- *Âge* — `majeur` en chaîne, en nombre, absent : tous refusés.
+- *Codes promo* — `__proto__`, `constructor`, `toString`, `valueOf`,
+  objets, tableaux : aucune remise accordée (vérifié sur Stripe, remise 0).
+- *Pollution de prototype* — `__proto__` dans le corps : sans effet.
+- *Déni de service* — 500 lignes refusées, corps de 5 Mo absorbé.
+- *Webhook avec secret* (conditions Vercel) — signature absente, bidon ou
+  malformée, faux paiement de 9 999 CHF : **tous rejetés en 400**.
+- *XSS* — `<script>` et `onerror` dans `session_id`, les chemins produit
+  et `utm_source` : aucune réflexion non échappée.
+- *Fuite de secrets* — aucune clé (`sk_`, `whsec_`, Resend) dans le HTML
+  servi.
+- *Données client* — une session non payée ou inventée n'affiche ni
+  récapitulatif, ni numéro, ni courriel ; la page est en `noindex`.
+- *Méthodes HTTP* — GET/PUT/DELETE/PATCH sur l'API : 405.
+- *Vie privée* — **aucun cookie déposé, aucune requête externe, aucun
+  traceur** ; polices auto-hébergées. Juridiquement confortable : pas de
+  bandeau cookies nécessaire.
+
+**Vérifié bon par ailleurs** — validation serveur des paniers, les 16
+routes répondent 200, build de production propre, parcours complet
+(age gate → panier → commande → session Stripe) testé sous CSP sans une
+seule erreur de console.
 
 ---
 
