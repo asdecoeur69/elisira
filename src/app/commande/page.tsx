@@ -4,7 +4,11 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLocalCart, formatPrice } from "@/lib/cart/LocalCartProvider";
-import { fraisDeLivraison, CODES } from "@/lib/commerce/tarifs";
+import {
+  fraisDeLivraison,
+  CODES,
+  LIVRAISON_OFFERTE_DES,
+} from "@/lib/commerce/tarifs";
 
 /**
  * Tunnel de commande.
@@ -422,7 +426,7 @@ export default function CommandePage() {
             )}
             <Ligne
               label={
-                livraison === 0 ? "Livraison offerte" : "Livraison en Suisse"
+                livraison === 0 ? "Livraison offerte" : "Livraison estimée"
               }
               valeur={
                 livraison === 0 ? "Offerte" : formatPrice(livraison, currency)
@@ -430,6 +434,23 @@ export default function CommandePage() {
               accent={livraison === 0}
             />
           </div>
+
+          {/* Dernière page avant le paiement : c'est ici que le seuil de
+              gratuité a le plus de chances de faire ajouter un article, et
+              ici que le client doit savoir que le retrait existe — sans quoi
+              il prend les 9 CHF pour une fatalité. */}
+          {livraison > 0 && (
+            <p className="mt-4 text-[0.8rem] leading-relaxed text-[var(--color-terracotta)]">
+              Plus que {formatPrice(LIVRAISON_OFFERTE_DES - (subtotal - remise), currency)}{" "}
+              pour la livraison offerte.
+            </p>
+          )}
+
+          <p className="mt-3 text-[0.78rem] leading-relaxed text-[var(--color-earth-300)]">
+            {livraison > 0
+              ? "Ou choisissez le retrait gratuit à Collex-Bossy à l'étape suivante."
+              : "Vous pourrez aussi choisir le retrait à Collex-Bossy à l'étape suivante."}
+          </p>
 
           <div
             className="mt-5 flex items-baseline justify-between border-t pt-5"
