@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { getStripe, paiementConfigure } from "@/lib/commerce/stripe";
 import { calculerPanier, DEVISE } from "@/lib/commerce/tarifs";
+import { baseConfiguree, lireStock } from "@/lib/admin/db";
 import { verifierLimite, adresseAppelant } from "@/lib/commerce/limite";
 
 /**
@@ -93,6 +94,36 @@ export async function POST(request: NextRequest) {
       { error: e instanceof Error ? e.message : "Panier invalide." },
       { status: 400 }
     );
+  }
+
+  /* Stock : dernier rempart avant le paiement.
+     Le panier du visiteur peut dater d'hier, et deux personnes peuvent
+     viser la dernière bouteille en même temps. On refuse ici plutôt que
+     d'encaisser puis de rembourser. Un stock non saisi vaut illimité, et
+     une base injoignable ne bloque pas la vente : mieux vaut vendre une
+     bouteille de trop que fermer la boutique sur une panne. */
+  if (baseConfiguree()) {
+    try {
+      const stock = await lireStock();
+      const manquants = panier.lignes.filter((l) => {
+        const dispo = stock[l.merchandiseId];
+        return typeof dispo === "number" && dispo < l.quantity;
+      });
+      if (manquants.length > 0) {
+        const noms = manquants.map((l) => l.titre).join(", ");
+        return NextResponse.json(
+          {
+            error:
+              manquants.length === 1
+                ? `${noms} n'est plus disponible en quantité suffisante.`
+                : `Ces produits ne sont plus disponibles en quantité suffisante : ${noms}.`,
+          },
+          { status: 409 }
+        );
+      }
+    } catch (e) {
+      console.error("[checkout] stock illisible, vente autorisée", e);
+    }
   }
 
   const origine = request.nextUrl.origin;

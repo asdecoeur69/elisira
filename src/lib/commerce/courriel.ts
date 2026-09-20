@@ -302,3 +302,91 @@ export async function envoyerConfirmation(
     return false;
   }
 }
+
+/**
+ * Courriel d'expédition.
+ *
+ * La confirmation promet « nous vous écrivons, avec le numéro de suivi,
+ * dès qu'elle part » : c'est ce message-là. Envoyé depuis le tableau de
+ * bord d'un clic, il supprime le risque d'oublier de prévenir le client.
+ */
+export async function envoyerExpedition(opts: {
+  email: string | null;
+  prenom: string | null;
+  numero: string;
+  suivi: string | null;
+}): Promise<boolean> {
+  if (!opts.email || !courrielConfigure()) return false;
+
+  const site = SITE_URL.replace(/\/+$/, "");
+  const lienSuivi = opts.suivi
+    ? `https://service.post.ch/EasyTrack/submitParcelData.do?formattedParcelCodes=${encodeURIComponent(opts.suivi)}`
+    : null;
+
+  const html = `<!doctype html>
+<html lang="fr">
+  <body style="margin:0;padding:32px 16px;background:#faf7f2;font-family:Georgia,'Times New Roman',serif;">
+    <table role="presentation" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#fffdf9;border-radius:8px;overflow:hidden;">
+      <tr><td style="padding:36px 32px 0;text-align:center;">
+        <a href="${site}" style="text-decoration:none;color:#2b2622;">
+          <img src="${site}/images/logo-noir.png" alt="H&amp;H Spirits" width="150"
+               style="display:block;margin:0 auto;max-width:150px;height:auto;border:0;" />
+        </a>
+      </td></tr>
+      <tr><td style="padding:32px;">
+        <p style="margin:0 0 8px;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#c0693f;">
+          Commande <span style="font-family:${CHIFFRES};letter-spacing:2px;">${esc(opts.numero)}</span>
+        </p>
+        <h1 style="margin:0 0 20px;font-size:26px;font-weight:400;color:#2b2622;">
+          ${opts.prenom ? `${esc(opts.prenom)}, votre` : "Votre"} commande est partie.
+        </h1>
+        <p style="margin:0 0 26px;font-size:15px;line-height:1.7;color:#6b6157;">
+          Elle voyage avec la Poste Suisse et vous parviendra sous deux à
+          quatre jours ouvrables.
+        </p>
+        ${
+          opts.suivi
+            ? `<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f7f2ea;border-radius:6px;">
+                 <tr><td style="padding:20px 22px;font-family:Georgia,serif;">
+                   <p style="margin:0 0 6px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#c0693f;">Numéro de suivi</p>
+                   <p style="margin:0;font-size:17px;color:#2b2622;font-family:${CHIFFRES};">${esc(opts.suivi)}</p>
+                   <p style="margin:12px 0 0;font-size:14px;">
+                     <a href="${lienSuivi}" style="color:#c0693f;">Suivre le colis</a>
+                   </p>
+                 </td></tr>
+               </table>`
+            : ""
+        }
+        <p style="margin:28px 0 0;font-size:14px;line-height:1.7;color:#6b6157;">
+          Une question ? Répondez simplement à ce courriel, ou appelez-nous
+          au <a href="tel:+41783304683" style="font-family:${CHIFFRES};color:#c0693f;text-decoration:none;white-space:nowrap;">078 330 46 83</a>.
+        </p>
+        <p style="margin:24px 0 0;padding-top:20px;border-top:1px solid #efe8de;font-size:12px;line-height:1.6;color:#a89c8d;">
+          H&amp;H Spirits SNC · Cours des Bastions <span style="font-family:${CHIFFRES};">13, 1205</span> Genève<br />
+          L'abus d'alcool est dangereux pour la santé. À consommer avec
+          modération. Vente interdite aux mineurs.
+        </p>
+      </td></tr>
+    </table>
+  </body>
+</html>`;
+
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const { error } = await resend.emails.send({
+      from: process.env.RESEND_FROM?.trim() || EXPEDITEUR_DEFAUT,
+      to: opts.email,
+      replyTo: REPONSE_A,
+      subject: `Votre commande ${opts.numero} est en route`,
+      html,
+    });
+    if (error) {
+      console.error("[courriel] expédition refusée", opts.numero, error);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error("[courriel] expédition impossible", opts.numero, e);
+    return false;
+  }
+}

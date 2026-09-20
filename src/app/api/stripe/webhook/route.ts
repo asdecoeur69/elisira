@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/commerce/stripe";
 import { envoyerConfirmation, numeroLisible } from "@/lib/commerce/courriel";
+import {
+  baseConfiguree,
+  decrementerStock,
+  enregistrerCommande as enregistrerEnBase,
+} from "@/lib/admin/db";
+import { LOCAL_PRODUCTS } from "@/lib/catalog/local";
 import type Stripe from "stripe";
 
 /**
@@ -128,6 +134,46 @@ async function enregistrerCommande(session: Stripe.Checkout.Session) {
   } catch (e) {
     /* Sans le détail, on envoie quand même : le total suffit à rassurer. */
     console.error("[commande] détail illisible", numero, e);
+  }
+
+  /* Enregistrement en base, pour le tableau de bord.
+     Volontairement isolé : si la base est injoignable, la commande reste
+     payée et le client reçoit sa confirmation. Mieux vaut une commande
+     absente du tableau de bord — rattrapable depuis Stripe — qu'un webhook
+     en échec que Stripe rejouerait indéfiniment. */
+  if (baseConfiguree()) {
+    try {
+      const adr = complete.collected_information?.shipping_details?.address;
+      await enregistrerEnBase({
+        sessionId: complete.id,
+        numero,
+        nom: client?.name ?? null,
+        email: client?.email ?? null,
+        tel: client?.phone ?? null,
+        adresse: adr
+          ? [adr.line1, adr.line2, `${adr.postal_code ?? ""} ${adr.city ?? ""}`.trim()]
+              .filter(Boolean)
+              .join("\n")
+          : null,
+        mode: modeLivraison,
+        total: complete.amount_total ?? 0,
+        devise: complete.currency ?? "chf",
+        lignes,
+      });
+
+      /* Le stock suit les variantes du catalogue, que Stripe ne connaît
+         pas : on les retrouve par le titre du produit. */
+      const parTitre = new Map<string, string>();
+      for (const p of LOCAL_PRODUCTS) {
+        for (const e of p.variants.edges) parTitre.set(p.title, e.node.id);
+      }
+      const mouvements = lignes
+        .map((l) => ({ variante: parTitre.get(l.titre) ?? "", quantite: l.quantite }))
+        .filter((m) => m.variante);
+      if (mouvements.length) await decrementerStock(mouvements);
+    } catch (e) {
+      console.error("[commande] enregistrement en base échoué", numero, e);
+    }
   }
 
   const envoye = await envoyerConfirmation(complete, lignes, numero, modeLivraison);
