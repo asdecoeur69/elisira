@@ -12,10 +12,29 @@ export const LIVRAISON = 9;
 export const LIVRAISON_OFFERTE_DES = 120;
 export const DEVISE = "chf";
 
+/**
+ * Quantité maximale par ligne.
+ *
+ * Le panier doit appliquer la même borne, sans quoi le client peut
+ * atteindre 25 exemplaires et ne découvrir le refus qu'au moment de payer.
+ */
+export const QUANTITE_MAX = 24;
+
 /** Codes promo. La remise est une fraction du sous-total. */
 export const CODES: Record<string, { remise: number; libelle: string }> = {
   ELISIRA26: { remise: 0.1, libelle: "ELISIRA26 · −10 %" },
 };
+
+/**
+ * Frais de port pour un sous-total déjà remisé, en francs.
+ *
+ * Même règle que `calculerPanier`, mais utilisable côté navigateur pour
+ * l'affichage : l'écart entre les deux est ce qui faisait payer la
+ * livraison à l'écran alors que le serveur l'offrait.
+ */
+export function fraisDeLivraison(sousTotalRemise: number): number {
+  return sousTotalRemise >= LIVRAISON_OFFERTE_DES ? 0 : LIVRAISON;
+}
 
 export type LigneDemandee = { merchandiseId: string; quantity: number };
 
@@ -77,7 +96,7 @@ export function calculerPanier(
     const qte = Number((brut as LigneDemandee)?.quantity);
 
     if (typeof id !== "string") throw new Error("Ligne invalide.");
-    if (!Number.isInteger(qte) || qte < 1 || qte > 24) {
+    if (!Number.isInteger(qte) || qte < 1 || qte > QUANTITE_MAX) {
       throw new Error("Quantité invalide.");
     }
 

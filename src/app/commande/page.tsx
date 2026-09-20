@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLocalCart, formatPrice } from "@/lib/cart/LocalCartProvider";
+import { fraisDeLivraison, CODES } from "@/lib/commerce/tarifs";
 
 /**
  * Tunnel de commande.
@@ -13,12 +14,9 @@ import { useLocalCart, formatPrice } from "@/lib/cart/LocalCartProvider";
  * demandée par Stripe, qui la renvoie avec la commande.
  */
 
-const LIVRAISON = 9;
-
-/** Codes promo. Le serveur revalide : ceci n'est que l'affichage. */
-const CODES: Record<string, { remise: number; libelle: string }> = {
-  ELISIRA26: { remise: 0.1, libelle: "ELISIRA26 · −10 %" },
-};
+/* Les codes promo viennent de `tarifs.ts`, comme les frais de port : le
+   serveur revalide de toute façon, mais afficher une autre remise que
+   celle qui sera appliquée est le meilleur moyen de perdre la vente. */
 
 export default function CommandePage() {
   const { resolved, subtotal, currency, totalQuantity } = useLocalCart();
@@ -37,7 +35,8 @@ export default function CommandePage() {
   const [envoi, setEnvoi] = useState(false);
 
   const remise = code ? subtotal * code.remise : 0;
-  const total = subtotal - remise + LIVRAISON;
+  const livraison = fraisDeLivraison(subtotal - remise);
+  const total = subtotal - remise + livraison;
 
   function appliquerCode(e?: { preventDefault: () => void }) {
     e?.preventDefault();
@@ -421,8 +420,13 @@ export default function CommandePage() {
               />
             )}
             <Ligne
-              label="Livraison en Suisse"
-              valeur={formatPrice(LIVRAISON, currency)}
+              label={
+                livraison === 0 ? "Livraison offerte" : "Livraison en Suisse"
+              }
+              valeur={
+                livraison === 0 ? "Offerte" : formatPrice(livraison, currency)
+              }
+              accent={livraison === 0}
             />
           </div>
 

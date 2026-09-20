@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/commerce/stripe";
+import { envoyerConfirmation, numeroLisible } from "@/lib/commerce/courriel";
 import type Stripe from "stripe";
 
 /**
@@ -72,16 +73,22 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Journalise la commande payée.
+ * Journalise la commande payée et envoie la confirmation au client.
  *
- * Volontairement minimal : le tableau de bord Stripe fait office de
- * back-office au démarrage. C'est ici que viendra l'envoi du courriel de
- * confirmation, puis l'enregistrement en base le jour venu.
+ * Le tableau de bord Stripe fait office de back-office au démarrage :
+ * l'enregistrement en base viendra le jour venu. Le courriel, lui, est
+ * promis par les CGV et par la page de confirmation — il part d'ici.
+ *
+ * Un échec d'envoi ne fait pas échouer le webhook : la commande est
+ * payée, et redemander l'événement à Stripe risquerait d'envoyer le
+ * courriel deux fois. On journalise pour pouvoir rattraper à la main.
  */
 async function enregistrerCommande(session: Stripe.Checkout.Session) {
   const client = session.customer_details;
+  const numero = numeroLisible(session.id, session.created);
 
   console.log("[commande] payée", {
+    numero,
     id: session.id,
     montant: session.amount_total,
     devise: session.currency,
@@ -89,4 +96,29 @@ async function enregistrerCommande(session: Stripe.Checkout.Session) {
     nom: client?.name,
     code: session.metadata?.code || null,
   });
+
+  /* Les lignes ne sont pas incluses dans l'événement : on les redemande. */
+  let lignes: Array<{ titre: string; quantite: number; montant: number }> = [];
+  try {
+    const items = await getStripe().checkout.sessions.listLineItems(session.id, {
+      limit: 50,
+    });
+    lignes = items.data.map((l) => ({
+      titre: l.description ?? "Article",
+      quantite: l.quantity ?? 1,
+      montant: l.amount_total ?? 0,
+    }));
+  } catch (e) {
+    /* Sans le détail, on envoie quand même : le total suffit à rassurer. */
+    console.error("[commande] lignes illisibles", numero, e);
+  }
+
+  const envoye = await envoyerConfirmation(session, lignes, numero);
+  if (!envoye) {
+    console.error(
+      "[commande] confirmation NON envoyée — à reprendre à la main",
+      numero,
+      client?.email
+    );
+  }
 }
