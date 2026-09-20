@@ -12,11 +12,18 @@ const BLOCS: Bloc[] = [
   {
     titre: "Éditeur du site",
     reperes: [
-      ["Raison sociale", "H&H Spirits"],
-      ["Adresse", "Chem. des Chaumets 35, 1239 Collex-Bossy"],
+      ["Raison sociale", "HH Spirits SNC"],
+      ["Siège social", "Cours des Bastions 13, 1205 Genève"],
+      ["Lieu de production", "Chem. des Chaumets 35, 1239 Collex-Bossy"],
       ["Pays", "Suisse"],
       ["Courriel", "info@hh-spirits.com"],
       ["Téléphone", "+41 78 330 46 83"],
+    ],
+  },
+  {
+    titre: "Taxe sur la valeur ajoutée",
+    paragraphes: [
+      "HH Spirits SNC n'est pas assujettie à la TVA : les prix affichés sur ce site ne comportent aucune taxe sur la valeur ajoutée, et aucune n'est facturée.",
     ],
   },
   {

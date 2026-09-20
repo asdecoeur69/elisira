@@ -25,8 +25,27 @@ export const SITE_URL = (
 export const SITE_LIVE = process.env.NEXT_PUBLIC_SITE_LIVE === "1";
 
 export const MAISON = "H&H Spirits";
+/** Raison sociale complète, telle qu'inscrite au registre du commerce. */
+export const RAISON_SOCIALE = "HH Spirits SNC";
 export const PRODUIT = "Elisira";
 
+/**
+ * Deux adresses, à ne pas confondre.
+ *
+ * Le siège social est celui qui engage l'entreprise : mentions légales,
+ * conditions de vente, fiche Google. Le site n'affichait que l'atelier,
+ * qui est l'adresse utile au client (retrait, visite) mais n'a aucune
+ * valeur juridique.
+ */
+export const SIEGE = {
+  rue: "Cours des Bastions 13",
+  codePostal: "1205",
+  ville: "Genève",
+  canton: "Genève",
+  pays: "CH",
+} as const;
+
+/** Lieu de production et de retrait des commandes. */
 export const ADRESSE = {
   rue: "Chem. des Chaumets 35",
   codePostal: "1239",

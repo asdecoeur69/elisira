@@ -127,7 +127,7 @@ function gabarit(opts: {
           Une question ? Répondez simplement à ce courriel.
         </p>
         <p style="margin:24px 0 0;font-size:12px;line-height:1.6;color:#a89c8d;">
-          H&amp;H Spirits · Chem. des Chaumets 35, 1239 Collex-Bossy<br />
+          HH Spirits SNC · Cours des Bastions 13, 1205 Genève<br />
           L'abus d'alcool est dangereux pour la santé. À consommer avec
           modération. Vente interdite aux mineurs.
         </p>

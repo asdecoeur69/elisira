@@ -2,6 +2,8 @@ import {
   ADRESSE,
   COURRIEL,
   MAISON,
+  RAISON_SOCIALE,
+  SIEGE,
   SITE_URL,
   TELEPHONES,
   url,
@@ -29,17 +31,38 @@ export function organisationJsonLd() {
     "@type": "Organization",
     "@id": `${SITE_URL}/#organisation`,
     name: MAISON,
+    /* Raison sociale exacte : Google la rapproche du registre du
+       commerce, où « H&H Spirits » seul ne figure pas. */
+    legalName: RAISON_SOCIALE,
     url: SITE_URL,
     email: COURRIEL,
     telephone: TELEPHONES[0],
     logo: url("/images/logo-noir.png"),
+
+    /* L'adresse déclarée est le siège social, pas l'atelier : c'est celle
+       qui doit concorder avec le registre et la fiche Google. */
     address: {
       "@type": "PostalAddress",
-      streetAddress: ADRESSE.rue,
-      postalCode: ADRESSE.codePostal,
-      addressLocality: ADRESSE.ville,
-      addressRegion: ADRESSE.canton,
-      addressCountry: ADRESSE.pays,
+      streetAddress: SIEGE.rue,
+      postalCode: SIEGE.codePostal,
+      addressLocality: SIEGE.ville,
+      addressRegion: SIEGE.canton,
+      addressCountry: SIEGE.pays,
+    },
+
+    /* L'atelier, lui, est le lieu où l'on produit et où l'on retire les
+       commandes — une information utile au visiteur, distincte du siège. */
+    location: {
+      "@type": "Place",
+      name: "Atelier de production — Collex-Bossy",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: ADRESSE.rue,
+        postalCode: ADRESSE.codePostal,
+        addressLocality: ADRESSE.ville,
+        addressRegion: ADRESSE.canton,
+        addressCountry: ADRESSE.pays,
+      },
     },
   };
 }
