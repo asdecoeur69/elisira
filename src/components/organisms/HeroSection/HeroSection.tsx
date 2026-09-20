@@ -129,8 +129,8 @@ function HeroSection() {
             <Image
               src="/images/bouteille-hero.png"
               alt="Bouteille Elisira, liqueur de mandarines siciliennes, 50 cl"
-              width={267}
-              height={822}
+              width={534}
+              height={1494}
               priority
               sizes="(max-width: 1024px) 130px, 28vw"
               className="relative h-[34vh] max-h-[300px] min-h-[250px] w-auto object-contain sm:max-h-[380px] lg:h-[71vh] lg:min-h-0 lg:max-h-[620px]"
