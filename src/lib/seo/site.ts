@@ -25,8 +25,13 @@ export const SITE_URL = (
 export const SITE_LIVE = process.env.NEXT_PUBLIC_SITE_LIVE === "1";
 
 export const MAISON = "H&H Spirits";
-/** Raison sociale complète, telle qu'inscrite au registre du commerce. */
-export const RAISON_SOCIALE = "HH Spirits SNC";
+/**
+ * Raison sociale et identifiant, tels qu'inscrits au registre IDE de la
+ * Confédération (uid.admin.ch, consulté le 2026-09-20). L'entreprise y
+ * figure comme active et inscrite au registre du commerce de Genève.
+ */
+export const RAISON_SOCIALE = "H&H Spirits SNC";
+export const IDE = "CHE-325.125.530";
 export const PRODUIT = "Elisira";
 
 /**

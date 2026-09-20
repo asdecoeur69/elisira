@@ -1,6 +1,7 @@
 import {
   ADRESSE,
   COURRIEL,
+  IDE,
   MAISON,
   RAISON_SOCIALE,
   SIEGE,
@@ -34,6 +35,14 @@ export function organisationJsonLd() {
     /* Raison sociale exacte : Google la rapproche du registre du
        commerce, où « H&H Spirits » seul ne figure pas. */
     legalName: RAISON_SOCIALE,
+    /* Identifiant d'entreprise suisse : c'est lui qui permet à Google de
+       relier le site à une entité réelle du registre fédéral. */
+    taxID: IDE,
+    identifier: {
+      "@type": "PropertyValue",
+      propertyID: "CHE",
+      value: IDE,
+    },
     url: SITE_URL,
     email: COURRIEL,
     telephone: TELEPHONES[0],

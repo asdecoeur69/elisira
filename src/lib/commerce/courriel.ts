@@ -225,7 +225,7 @@ function gabarit(opts: {
         </p>
 
         <p style="margin:24px 0 0;padding-top:20px;border-top:1px solid #efe8de;font-size:12px;line-height:1.6;color:#a89c8d;">
-          HH Spirits SNC · Cours des Bastions <span style="font-family:${CHIFFRES};">13, 1205</span> Genève<br />
+          H&amp;H Spirits SNC · Cours des Bastions <span style="font-family:${CHIFFRES};">13, 1205</span> Genève<br />
           L'abus d'alcool est dangereux pour la santé. À consommer avec
           modération. Vente interdite aux mineurs.
         </p>

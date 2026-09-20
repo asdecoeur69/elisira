@@ -81,7 +81,7 @@ const BLOCS: Bloc[] = [
   {
     titre: "Nous contacter",
     paragraphes: [
-      "Pour toute question relative à vos données : info@hh-spirits.com, ou HH Spirits SNC, Cours des Bastions 13, 1205 Genève, Suisse.",
+      "Pour toute question relative à vos données : info@hh-spirits.com, ou H&H Spirits SNC, Cours des Bastions 13, 1205 Genève, Suisse.",
     ],
   },
 ];

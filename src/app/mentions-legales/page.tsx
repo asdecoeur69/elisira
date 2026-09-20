@@ -12,7 +12,8 @@ const BLOCS: Bloc[] = [
   {
     titre: "Éditeur du site",
     reperes: [
-      ["Raison sociale", "HH Spirits SNC"],
+      ["Raison sociale", "H&H Spirits SNC"],
+      ["Numéro IDE", "CHE-325.125.530"],
       ["Siège social", "Cours des Bastions 13, 1205 Genève"],
       ["Lieu de production", "Chem. des Chaumets 35, 1239 Collex-Bossy"],
       ["Pays", "Suisse"],
@@ -23,7 +24,7 @@ const BLOCS: Bloc[] = [
   {
     titre: "Taxe sur la valeur ajoutée",
     paragraphes: [
-      "HH Spirits SNC n'est pas assujettie à la TVA : les prix affichés sur ce site ne comportent aucune taxe sur la valeur ajoutée, et aucune n'est facturée.",
+      "H&H Spirits SNC n'est pas assujettie à la TVA : les prix affichés sur ce site ne comportent aucune taxe sur la valeur ajoutée, et aucune n'est facturée.",
     ],
   },
   {

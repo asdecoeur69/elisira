@@ -12,7 +12,7 @@ const BLOCS: Bloc[] = [
   {
     titre: "1. Champ d'application",
     paragraphes: [
-      "Les présentes conditions régissent les ventes conclues sur hh-spirits.com entre HH Spirits SNC, dont le siège est Cours des Bastions 13, 1205 Genève, et ses clients. Toute commande vaut acceptation de ces conditions.",
+      "Les présentes conditions régissent les ventes conclues sur hh-spirits.com entre H&H Spirits SNC (CHE-325.125.530), dont le siège est Cours des Bastions 13, 1205 Genève, et ses clients. Toute commande vaut acceptation de ces conditions.",
     ],
   },
   {
@@ -30,7 +30,7 @@ const BLOCS: Bloc[] = [
   {
     titre: "4. Prix",
     paragraphes: [
-      "Les prix sont indiqués en francs suisses (CHF), hors frais de livraison. HH Spirits SNC n'étant pas assujettie à la TVA, aucune taxe sur la valeur ajoutée n'est perçue ni facturée. Les frais de livraison sont affichés avant la validation définitive de la commande.",
+      "Les prix sont indiqués en francs suisses (CHF), hors frais de livraison. H&H Spirits SNC n'étant pas assujettie à la TVA, aucune taxe sur la valeur ajoutée n'est perçue ni facturée. Les frais de livraison sont affichés avant la validation définitive de la commande.",
       "H&H Spirits se réserve le droit de modifier ses prix à tout moment ; le prix applicable est celui affiché au moment de la commande.",
     ],
   },
