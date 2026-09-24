@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { PageHeader } from "@/components/molecules/PageHeader";
+import {
+  PARTENAIRES as REFERENCES,
+  formaterTelephone,
+} from "@/lib/catalog/partenaires";
 
 export const metadata: Metadata = {
   title: "Professionnels",
@@ -79,6 +83,7 @@ export default function ProfessionnelsPage() {
             <p className="mt-6 text-[0.92rem] text-[var(--color-earth-500)]">
               Pour le service comme pour la vente en boutique.
             </p>
+
           </div>
 
           <div className="mt-20 grid grid-cols-1 gap-x-16 gap-y-14 md:grid-cols-2">
@@ -156,6 +161,71 @@ export default function ProfessionnelsPage() {
           </div>
         </div>
       </section>
+
+      {/* ── Ils servent déjà Elisira ─────────────────────────────
+             Coordonnées complètes, contrairement à `/points-de-vente` :
+             ici la liste ne travaille que pour nous. Un établissement qui
+             hésite veut voir qui a dit oui, et peut vouloir les appeler
+             pour se renseigner — c'est une bonne chose. Aucun risque de
+             détourner un consommateur : il n'arrive pas sur cette page. */}
+      {REFERENCES.length > 0 && (
+        <section className="bg-[var(--color-chalk)] py-[var(--spacing-section-mobile)] lg:py-[var(--spacing-section)]">
+          <div className="mx-auto max-w-[900px] px-6 lg:px-10">
+            <p className="mb-6 text-[0.7rem] uppercase tracking-[0.34em] text-[var(--color-terracotta)]">
+              Nos références
+            </p>
+            <h2 className="text-[length:var(--text-h2)]">
+              Déjà sur les cartes
+              <span className="accent-italic"> genevoises.</span>
+            </h2>
+            <p className="mt-6 max-w-[58ch] text-[0.98rem] leading-relaxed text-[var(--color-earth-500)]">
+              Ces établissements servent Elisira. Appelez-les : ils vous
+              diront mieux que nous comment elle tourne.
+            </p>
+
+            <ul className="mt-12 grid grid-cols-1 gap-x-12 sm:grid-cols-2">
+              {REFERENCES.map((p) => (
+                <li
+                  key={p.nom}
+                  className="border-t py-7"
+                  style={{ borderColor: "var(--hairline)" }}
+                >
+                  <h3 className="font-[family-name:var(--font-heading)] text-[1.25rem] text-[var(--color-earth-deep)]">
+                    {p.site ? (
+                      <a
+                        href={p.site}
+                        target="_blank"
+                        rel="noopener"
+                        className="transition-colors duration-300 hover:text-[var(--color-terracotta)]"
+                      >
+                        {p.nom}
+                      </a>
+                    ) : (
+                      p.nom
+                    )}
+                  </h3>
+                  <p className="mt-1 text-[0.76rem] uppercase tracking-[0.14em] text-[var(--color-terracotta)]">
+                    {p.type}
+                  </p>
+                  <p className="mt-3 text-[0.95rem] leading-relaxed text-[var(--color-earth-500)]">
+                    {p.rue}
+                    <br />
+                    {p.codePostal} {p.ville}
+                  </p>
+                  {p.telephone && (
+                    <a
+                      href={`tel:${p.telephone}`}
+                      className="mt-2 inline-block text-[0.95rem] text-[var(--color-earth-500)] transition-colors duration-300 hover:text-[var(--color-terracotta)]"
+                    >
+                      {formaterTelephone(p.telephone)}
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
       {/* ── Contact — une seule action forte ─────────────────── */}
       <section className="py-[var(--spacing-section-mobile)] lg:py-[var(--spacing-section)]">

@@ -6,6 +6,7 @@ import { IngredientsSection } from "@/components/organisms/IngredientsSection";
 import { RangeSection } from "@/components/organisms/RangeSection";
 import { QuoteBand } from "@/components/organisms/QuoteBand";
 import { UsageSection } from "@/components/organisms/UsageSection";
+import { PartnersBand } from "@/components/organisms/PartnersBand";
 
 export const metadata: Metadata = {
   /* Le titre par défaut du layout convient à l'accueil ; on ne redéfinit
@@ -78,7 +79,10 @@ export default function HomePage() {
       {/* 5. Les trois usages — digestif, cocktail, dessert */}
       <UsageSection />
 
-      {/* 6. Respiration — bande immersive pleine largeur, en clôture */}
+      {/* 6. Ils servent Elisira — preuve sociale juste avant la clôture */}
+      <PartnersBand />
+
+      {/* 7. Respiration — bande immersive pleine largeur, en clôture */}
       <QuoteBand />
     </>
   );

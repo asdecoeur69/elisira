@@ -1,0 +1,1 @@
+export { PartnersBand } from "./PartnersBand";
