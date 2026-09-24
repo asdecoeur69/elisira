@@ -1,7 +1,3 @@
-"use client";
-
-import { m } from "framer-motion";
-
 type Repere = { k: string; v: string };
 
 /**
@@ -10,6 +6,9 @@ type Repere = { k: string; v: string };
  * repères tenaient dans une bande pleine largeur sous le hero ; ils
  * répondent mieux à la question « qu'est-ce qu'il y a dedans ? » lorsqu'ils
  * accompagnent directement le texte d'introduction.
+ *
+ * Composant serveur : l'entrée est en CSS (`.entree`), visible dès le
+ * premier rendu au lieu d'attendre l'hydratation.
  */
 export function ElisiraHero({ reperes }: { reperes: Repere[] }) {
   return (
@@ -20,11 +19,7 @@ export function ElisiraHero({ reperes }: { reperes: Repere[] }) {
       />
 
       <div className="relative mx-auto grid max-w-[1240px] grid-cols-1 items-start gap-12 px-6 pb-[40px] pt-[calc(var(--header-h)+56px)] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.75fr)] lg:items-center lg:gap-14 lg:px-10 lg:pb-[50px]">
-        <m.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, ease: [0.22, 0.61, 0.36, 1] }}
-        >
+        <div className="entree">
           <p className="mb-6 text-[0.7rem] uppercase tracking-[0.34em] text-[var(--color-terracotta)]">
             La liqueur
           </p>
@@ -37,18 +32,12 @@ export function ElisiraHero({ reperes }: { reperes: Repere[] }) {
             L&apos;originale en 50 cl et Nero Imperiale en 70 cl partagent
             exactement la même recette.
           </p>
-        </m.div>
+        </div>
 
         {/* Les repères — 2 × 2, séparés par de simples filets. */}
-        <m.dl
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            duration: 0.55,
-            delay: 0.1,
-            ease: [0.22, 0.61, 0.36, 1],
-          }}
-          className="grid grid-cols-1 gap-x-10 sm:grid-cols-2 lg:[&>div]:min-h-[104px]"
+        <dl
+          style={{ "--rang": 1.5 } as React.CSSProperties}
+          className="entree grid grid-cols-1 gap-x-10 sm:grid-cols-2 lg:[&>div]:min-h-[104px]"
         >
           {reperes.map((r, i) => (
             <div
@@ -69,7 +58,7 @@ export function ElisiraHero({ reperes }: { reperes: Repere[] }) {
               </dd>
             </div>
           ))}
-        </m.dl>
+        </dl>
       </div>
     </section>
   );

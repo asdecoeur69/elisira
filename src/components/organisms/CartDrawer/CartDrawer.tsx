@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { AnimatePresence, m } from "framer-motion";
+import { AnimatePresence, m, useReducedMotion } from "framer-motion";
+import { EASE_OUT } from "@/lib/animations";
 import { useLocalCart, formatPrice } from "@/lib/cart/LocalCartProvider";
 
 export function CartDrawer() {
@@ -16,6 +17,7 @@ export function CartDrawer() {
     currency,
     totalQuantity,
   } = useLocalCart();
+  const reduire = useReducedMotion();
 
   return (
     <AnimatePresence>
@@ -35,11 +37,15 @@ export function CartDrawer() {
           />
 
           {/* Tiroir */}
+          {/* `transform` plutôt que `x` : le glissement est confié au
+              compositeur. À l'ouverture, React monte tout le contenu du
+              tiroir dans la même image — une animation pilotée en
+              JavaScript perdait ses premières frames à ce moment-là. */}
           <m.aside
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ duration: 0.45, ease: [0.22, 0.61, 0.36, 1] }}
+            initial={{ transform: "translateX(100%)" }}
+            animate={{ transform: "translateX(0%)" }}
+            exit={{ transform: "translateX(100%)" }}
+            transition={reduire ? { duration: 0 } : { duration: 0.45, ease: EASE_OUT }}
             role="dialog"
             aria-modal="true"
             aria-label="Panier"

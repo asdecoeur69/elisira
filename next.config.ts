@@ -75,6 +75,11 @@ const nextConfig: NextConfig = {
     /* Le catalogue est local et ne sert aucun SVG distant : autoriser les
        SVG rouvrirait une voie d'injection sans rien apporter. */
     remotePatterns: [],
+    /* AVIF d'abord : 20 à 30 % plus léger que WebP à qualité égale sur
+       ces photos, donc des images qui arrivent plus tôt pendant le
+       scroll. Le premier encodage est plus lent côté serveur, mais il
+       est mis en cache ; les navigateurs sans AVIF reçoivent du WebP. */
+    formats: ["image/avif", "image/webp"],
   },
 
   async headers() {

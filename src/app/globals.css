@@ -53,6 +53,13 @@
 
   /* Échelle typographique */
   --text-display: clamp(2.6rem, 5.4vw, 4.4rem);
+  /* Hero plein écran : le titre suit aussi la HAUTEUR de la fenêtre.
+     À largeur égale, un 13" (837 px utiles) et un 27" (1080 px) ont le
+     même `vw` mais 240 px d'écart vertical — indexer sur `vw` seul
+     laissait le titre identique pendant que le cadre grandissait.
+     `vh` porte donc la moitié du terme variable, `vw` l'autre : la
+     typo grandit avec le cadre dans les deux axes, et reste bornée
+     par le `clamp` pour ne jamais casser la césure. */
   /* Mobile : même ambition typographique, ~10 % de hauteur en moins —
      assez pour que le produit entre dans le premier écran. */
   --text-display-mobile: clamp(2.3rem, 9.2vw, 2.9rem);
@@ -206,6 +213,68 @@ h4 {
   color: var(--color-terracotta);
 }
 
+/* ── Entrée des en-têtes ───────────────────────────────────────
+   Ce qui est visible à l'arrivée sur la page (hero, en-têtes de page,
+   fiche produit) apparaît en CSS, pas avec Framer. Framer rend ces
+   blocs à `opacity: 0` dans le HTML serveur et ne les révèle qu'après
+   l'hydratation : sur un mobile moyen, c'était une seconde ou plus
+   d'écran vide au premier chargement, et la meilleure image du site
+   (la LCP) affichée en dernier. Une animation CSS démarre au premier
+   rendu, avant même que le JavaScript soit arrivé.
+
+   Même vocabulaire que `lib/animations.ts` : fondu monté de 14 px,
+   0,55 s, cascade de 70 ms réglée par `--rang` sur chaque élément. */
+@keyframes entree {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes entree-fondu {
+  from {
+    opacity: 0;
+  }
+}
+
+.entree,
+.entree-fondu {
+  animation: entree 0.55s var(--ease-out) both;
+  animation-delay: calc(var(--rang, 0) * 70ms);
+}
+
+/* Les grands visuels : un fondu seul, la masse bouge mal. */
+.entree-fondu {
+  animation-name: entree-fondu;
+  animation-duration: 0.7s;
+}
+
+/* La branche du hero respire : ±0,9° autour de son point d'entrée dans
+   le cadre, en 9 s. En CSS plutôt qu'avec Framer : une rotation
+   isolée (`rotate`) y est recalculée en JavaScript à chaque image,
+   indéfiniment, y compris pendant le scroll. Ici le compositeur la joue
+   seul, sans jamais solliciter le fil principal. */
+@keyframes branche {
+  0%,
+  50%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(0.9deg);
+  }
+  75% {
+    transform: rotate(-0.9deg);
+  }
+}
+
+.branche {
+  animation:
+    entree-fondu 0.9s var(--ease-out) 0.2s both,
+    branche 9s ease-in-out infinite;
+  will-change: transform;
+}
+
 .scrollbar-none {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -258,6 +327,9 @@ button:focus:not(:focus-visible) {
   *::before,
   *::after {
     animation-duration: 0.001ms !important;
+    /* Sans ce reset, les éléments en cascade (`.entree`) resteraient
+       invisibles le temps de leur délai avant d'apparaître d'un coup. */
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }

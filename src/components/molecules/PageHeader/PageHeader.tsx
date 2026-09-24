@@ -1,8 +1,5 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { m } from "framer-motion";
 
 type Props = {
   eyebrow: string;
@@ -21,6 +18,10 @@ type Props = {
 /**
  * En-tête de page intérieure. Même respiration que le hero, mais
  * sans image : on laisse le contenu commencer vite.
+ *
+ * Composant serveur : l'entrée est en CSS (`.entree`) et joue dès le
+ * premier rendu. Avec Framer, le titre restait invisible jusqu'à
+ * l'hydratation.
  */
 export function PageHeader({
   eyebrow,
@@ -46,11 +47,7 @@ export function PageHeader({
           aside ? "lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)] lg:gap-14" : ""
         }`}
       >
-        <m.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: [0.22, 0.61, 0.36, 1] }}
-        >
+        <div className="entree">
           <p className="mb-6 text-[0.7rem] uppercase tracking-[0.34em] text-[var(--color-terracotta)]">
             {eyebrow}
           </p>
@@ -81,14 +78,12 @@ export function PageHeader({
               )}
             </div>
           )}
-        </m.div>
+        </div>
 
         {aside && (
-          <m.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1.4, delay: 0.25, ease: [0.22, 0.61, 0.36, 1] }}
-            className="relative mx-auto aspect-[4/5] w-full max-w-[220px] overflow-hidden rounded-[var(--radius-lg)] shadow-[var(--shadow-2)] lg:max-w-[260px]"
+          <div
+            style={{ "--rang": 2 } as React.CSSProperties}
+            className="entree-fondu relative mx-auto aspect-[4/5] w-full max-w-[220px] overflow-hidden rounded-[var(--radius-lg)] shadow-[var(--shadow-2)] lg:max-w-[260px]"
           >
             <Image
               src={aside.src}
@@ -97,7 +92,7 @@ export function PageHeader({
               sizes="(max-width: 1024px) 60vw, 22vw"
               className="object-cover"
             />
-          </m.div>
+          </div>
         )}
       </div>
     </section>

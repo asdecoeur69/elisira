@@ -4,7 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { AnimatePresence, m } from "framer-motion";
+import { AnimatePresence, m, useReducedMotion } from "framer-motion";
+import { EASE_OUT } from "@/lib/animations";
 import { useLocalCart } from "@/lib/cart/LocalCartProvider";
 
 const NAV = [
@@ -20,6 +21,7 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const { totalQuantity, open: openCart } = useLocalCart();
   const pathname = usePathname();
+  const reduire = useReducedMotion();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -211,10 +213,10 @@ export function Header() {
       <AnimatePresence>
         {open && (
           <m.nav
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.35, ease: [0.22, 0.61, 0.36, 1] }}
+            initial={{ opacity: 0, transform: "translateY(-12px)" }}
+            animate={{ opacity: 1, transform: "translateY(0px)" }}
+            exit={{ opacity: 0, transform: "translateY(-12px)" }}
+            transition={reduire ? { duration: 0 } : { duration: 0.35, ease: EASE_OUT }}
             className="plaster-grain absolute inset-x-0 top-full border-b lg:hidden"
             style={{
               borderColor: "var(--hairline)",

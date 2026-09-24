@@ -85,7 +85,7 @@ function RangeSection() {
 
           {/* ── Elisira 70 cl — même recette, édition noire ──── */}
           <m.article variants={rise} className="group flex flex-col">
-            <Link href="/products/elisira-50cl" className="block">
+            <Link href="/products/elisira-70cl" className="block">
               <div className="relative aspect-[3/4] overflow-hidden rounded-[var(--radius-lg)] bg-[var(--color-plaster)]">
                 <Image
                   src="/images/produits/elisira-70-2.jpg"

@@ -101,8 +101,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    /* `data-scroll-behavior` : depuis Next 16, le `scroll-behavior:
+       smooth` de globals.css n'est plus suspendu pendant les changements
+       de page. Sans cet attribut, chaque clic sur un lien faisait
+       défiler toute la page précédente jusqu'en haut, sous les yeux du
+       visiteur, avant d'afficher la nouvelle. Les ancres internes
+       (#fiche-produit) gardent leur défilement doux. */
     <html
       lang="fr"
+      data-scroll-behavior="smooth"
       className={`${cormorant.variable} ${jost.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">

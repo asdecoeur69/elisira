@@ -2,8 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { m } from "framer-motion";
-import { rise, stagger } from "@/lib/animations";
 import { useLocalCart, formatPrice } from "@/lib/cart/LocalCartProvider";
 import Link from "next/link";
 import { getEditorial, SUGGESTION } from "@/lib/catalog/editorial";
@@ -223,38 +221,44 @@ function ProductDetail({ product }: ProductDetailProps) {
           )}
         </div>
 
-        {/* ── Informations ──────────────────────────────────── */}
-        <m.div variants={stagger} initial="hidden" animate="show">
-          <m.p
-            variants={rise}
-            className="text-[0.7rem] uppercase tracking-[0.3em] text-[var(--color-terracotta)]"
+        {/* ── Informations ──────────────────────────────────────
+            Entrée en CSS (`.entree`) : la colonne est visible dès le
+            premier rendu, sans attendre l'hydratation — c'est elle qui
+            porte le prix et le bouton d'achat. */}
+        <div>
+          <p
+            style={{ "--rang": 0 } as React.CSSProperties}
+            className="entree text-[0.7rem] uppercase tracking-[0.3em] text-[var(--color-terracotta)]"
           >
             {editorial?.eyebrow ?? product.productType}
-          </m.p>
+          </p>
 
-          <m.h1
-            variants={rise}
-            className="mt-5 max-w-[18ch] text-[length:var(--text-h2)] leading-[1.14]"
+          <h1
+            style={{ "--rang": 1 } as React.CSSProperties}
+            className="entree mt-5 max-w-[18ch] text-[length:var(--text-h2)] leading-[1.14]"
           >
             {editorial?.titre ?? product.title}
-          </m.h1>
+          </h1>
 
-          <m.p
-            variants={rise}
-            className="mt-6 font-[family-name:var(--font-heading)] text-[1.75rem] text-[var(--color-earth-deep)]"
+          <p
+            style={{ "--rang": 2 } as React.CSSProperties}
+            className="entree mt-6 font-[family-name:var(--font-heading)] text-[1.75rem] text-[var(--color-earth-deep)]"
           >
             {formatPrice(prix, devise)}
-          </m.p>
+          </p>
 
-          <m.p
-            variants={rise}
-            className="body-copy mt-6 text-[0.98rem] leading-relaxed text-[var(--color-earth-500)]"
+          <p
+            style={{ "--rang": 3 } as React.CSSProperties}
+            className="entree body-copy mt-6 text-[0.98rem] leading-relaxed text-[var(--color-earth-500)]"
           >
             {editorial?.accroche ?? product.description}
-          </m.p>
+          </p>
 
           {/* Quantité */}
-          <m.div variants={rise} className="mt-10">
+          <div
+            style={{ "--rang": 4 } as React.CSSProperties}
+            className="entree mt-10"
+          >
             <p className="text-[0.68rem] uppercase tracking-[0.22em] text-[var(--color-earth-300)]">
               Quantité
             </p>
@@ -282,10 +286,13 @@ function ProductDetail({ product }: ProductDetailProps) {
                 +
               </button>
             </div>
-          </m.div>
+          </div>
 
           {/* Achat */}
-          <m.div variants={rise} className="mt-7">
+          <div
+            style={{ "--rang": 5 } as React.CSSProperties}
+            className="entree mt-7"
+          >
             <button
               type="button"
               onClick={ajouter}
@@ -298,18 +305,21 @@ function ProductDetail({ product }: ProductDetailProps) {
                 ? "Ajouté au panier ✓"
                 : `Ajouter au panier — ${formatPrice(prix * quantite, devise)}`}
             </button>
-          </m.div>
+          </div>
 
-          <m.p
-            variants={rise}
-            className="mt-4 text-[0.8rem] text-[var(--color-earth-500)]"
+          <p
+            style={{ "--rang": 5 } as React.CSSProperties}
+            className="entree mt-4 text-[0.8rem] text-[var(--color-earth-500)]"
           >
             Livraison en Suisse · Retrait à Collex-Bossy
-          </m.p>
+          </p>
 
           {/* Repères */}
           {editorial && editorial.reperes.length > 0 && (
-            <m.dl variants={rise} className="mt-12">
+            <dl
+              style={{ "--rang": 6 } as React.CSSProperties}
+              className="entree mt-12"
+            >
               {editorial.reperes.map(([k, v], i, arr) => (
                 <div
                   key={k}
@@ -328,19 +338,19 @@ function ProductDetail({ product }: ProductDetailProps) {
                   </dd>
                 </div>
               ))}
-            </m.dl>
+            </dl>
           )}
 
           {product.productType === "Liqueur" && (
-            <m.p
-              variants={rise}
-              className="mt-8 text-[0.8rem] text-[var(--color-earth-500)]"
+            <p
+              style={{ "--rang": 6 } as React.CSSProperties}
+              className="entree mt-8 text-[0.8rem] text-[var(--color-earth-500)]"
             >
               L&apos;abus d&apos;alcool est dangereux pour la santé. À consommer
               avec modération. Vente interdite aux mineurs.
-            </m.p>
+            </p>
           )}
-        </m.div>
+        </div>
       </div>
 
 
