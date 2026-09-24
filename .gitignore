@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Sources et brouillons d'images du hero : captures d'ecran, rendus
+# generes, PNG lourds dont la version .webp servie existe a cote. Ils
+# restent sur le disque mais n'ont rien a faire dans le depot — chaque
+# clone et chaque deploiement les trimballerait pour rien.
+public/images/hero/Capture*
+public/images/hero/Gemini_Generated_Image_*
+public/images/hero/hero-genere.jpg
+public/images/hero/fruits.png
+public/images/hero/mandarine-zeste.png
